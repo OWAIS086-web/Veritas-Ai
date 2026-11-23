@@ -43,6 +43,7 @@ ALL_PERMISSIONS: frozenset[str] = frozenset(
         "findings:review",
         "graph:read",
         "graph:rebuild",
+        "forensics:read",
     }
 )
 
@@ -56,6 +57,7 @@ _READ = frozenset(
         "documents:read",
         "findings:read",
         "graph:read",
+        "forensics:read",
     }
 )
 _WORK = frozenset(

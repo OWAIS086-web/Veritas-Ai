@@ -77,6 +77,30 @@ The processing job adds `comparison_started` and `comparison_completed` (or `com
 
 Every edge carries non-empty `evidence_ids`. `CONTRADICTS` edges also carry `finding_id`. Entities, relationships and graphs of another organization or of a deleted case are a 404. `GET /system/health` adds a `graph` section (`status`, `outbox_pending`, `outbox_dead`). It doesn't change the overall status, because the graph is served from Postgres when Neo4j is down.
 
+## Endpoints (Phase 5)
+| Method | Path | Permission | Notes |
+|---|---|---|---|
+| GET | /documents/{id}/forensics | forensics:read | The latest forensic run, or `null` if the document hasn't reached the stage. Fields: `{id, document_id, pipeline_version, status (succeeded, partial or not_applicable), analysis_types, pdf_metadata, structure, limitations, started_at, finished_at, anomalies}`. Anomalies are sorted by severity, then page. |
+| GET | /cases/{id}/forensics | forensics:read | One row per document of the case: `{document_id, filename, doc_type, mime_type, status, analysis_types, anomalies, medium, low, types}`. Documents with more medium anomalies come first. |
+
+- Each anomaly has `{id, type, page_number, region, severity, explanation, metrics, requires_review}`.
+- `region` is `[x0, y0, x1, y1]` with a top-left origin, in PDF points (pixels for image files), the same as field bboxes.
+- `severity` is `info`, `low` or `medium`, never higher. The database enforces this with a CHECK constraint.
+- `requires_review` is true for medium anomalies.
+- `metrics` holds the measured values behind the anomaly. The keys `fields` and `field_id` hold the ids of the overlapping `extracted_fields` rows.
+- Anomaly types:
+  - `incremental_update`
+  - `metadata_inconsistency`
+  - `font_inconsistency`
+  - `localized_compression_anomaly`
+  - `version_difference`
+  - `stamp_appearance_variation`
+- Every run includes the limitation "A visual or structural inconsistency alone does not establish document alteration or forgery."
+- Anomalies never create findings.
+- A document or case of another organization, or of a deleted case, is a 404.
+
+The processing job's stages are now `parse, classify, extract, validate, forensics`. The `forensics` stage's `stage_completed` event summary is `{status, analysis_types, anomalies, medium, compared_with_version, stamps_compared}`.
+
 ## Tokens
 - Access tokens are HS256 JWTs valid for 15 minutes, with claims `sub, org, role, type=access, jti, iat, exp`. The role in the token is informational: every request re-reads the membership and role from the database.
 - Refresh tokens are opaque random 256-bit strings, stored only as SHA-256 hashes and valid for 7 days.

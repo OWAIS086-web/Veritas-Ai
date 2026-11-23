@@ -111,6 +111,17 @@ Check "evidence graph (Postgres rows -> outbox -> worker -> Neo4j)" {
     if (@($graph.edges | Where-Object { -not $_.evidence_ids }).Count) { throw "edge without evidence" }
     "($($graph.total_nodes) nodes, $($graph.total_edges) relationships, $([int]$i) s to sync)"
 }
+Check "document forensics (worker forensics stage -> runs with limitations)" {
+    $response = Invoke-RestMethod "$api/cases/$($script:smokeCase)/forensics" -Headers $headers
+    $summary = @($response | ForEach-Object { $_ })
+    if ($summary.Count -ne 2) { throw "expected 2 documents, got $($summary.Count)" }
+    foreach ($row in $summary) {
+        $run = Invoke-RestMethod "$api/documents/$($row.document_id)/forensics" -Headers $headers
+        if ($run.status -ne "succeeded") { throw "$($row.filename): forensic status=$($run.status)" }
+        if (-not ($run.limitations -match "does not establish document alteration")) { throw "$($row.filename): limitation missing" }
+    }
+    "($(@($summary | ForEach-Object { $_.anomalies } | Measure-Object -Sum).Sum) anomalies across $($summary.Count) unaltered documents)"
+}
 Check "audit log recorded the session" {
     $logs = Invoke-RestMethod "$api/audit-logs" -Headers $headers
     $actions = $logs.items.action

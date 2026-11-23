@@ -1,6 +1,6 @@
 # How VERITAS AI uses Kiro
 
-This document is part of the Kiroween 2026 submission. It explains how Kiro's features shaped the build, and it is updated at the end of each phase. Nothing here describes work that has not been done. The current record covers Phases 0–4.
+This document is part of the Kiroween 2026 submission. It explains how Kiro's features shaped the build, and it is updated at the end of each phase. Nothing here describes work that has not been done. The current record covers Phases 0–5.
 
 ## Surfaces used
 - **Kiro IDE** (Autopilot mode) for the whole build: specs, steering, hooks, custom agents and implementation.
@@ -193,3 +193,14 @@ Recorded from the live-provider and Phase 4 session on 2026-11-23:
   - migration 0004, not 0006;
   - beat embedded in the worker instead of a new service;
   - a Neo4j namespace, added after reviewing the reconciler showed that tests would otherwise delete the stack's graphs.
+
+Recorded from the Phase 5 (document forensics) session on 2026-11-23:
+
+- **The spec's acceptance conditions forced real calibration.** The task "the recompressed region is flagged and the clean fixture is not" ruled out the first two methods tried: the 8×8 blockiness metric (rendered vector text alone scored z 7.34) and a JPEG ghost. The same happened for stamps. SSIM ranked an altered stamp (0.969) above an honest re-scan (0.936), so the decision metric became `unmatched_ink`. The spec's `design.md` was then rewritten to the built design, and it lists the deviations from the requirements text rather than hiding them.
+- **Product steering set the output contract.** The hard rules ("never declares a document authentic or forged") and the spec's mandatory limitation led to these choices:
+  - an `Anomaly` type that refuses a severity above medium;
+  - a database CHECK with the same cap;
+  - an integration test that scans every explanation for verdict words;
+  - no path from anomalies to findings, which the module dependency matrix in the `structure` steering also forbids.
+- **The security-review hook checked the new permission.** The hook fired when `core/permissions.py` was saved. The review covered three points: `forensics:read` is granted to every role through the read set, both endpoints use `require_permission`, and both filter on `organization_id` with cross-org 404. That gave the RBAC matrix rows and the two-organization isolation test.
+- **Spec-driven versus vibe:** the spec placed the forensics stage in parallel with extraction. Building the font check showed it needs the extracted boxes, so the stage runs after `validate`. That was recorded in the design instead of being silently changed.

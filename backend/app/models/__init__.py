@@ -20,6 +20,7 @@ from app.models.findings import (
     FindingStatus,
     InvestigatorComment,
 )
+from app.models.forensics import ForensicAnomaly, ForensicRun
 from app.models.graph import Entity, EntityMention, OutboxEvent, Relationship
 from app.models.identity import Organization, OrganizationMember, RefreshToken, Role, User
 from app.models.job import TERMINAL_STATUSES, Job, JobEvent, JobStatus
@@ -43,6 +44,8 @@ __all__ = [
     "Finding",
     "FindingDecision",
     "FindingStatus",
+    "ForensicAnomaly",
+    "ForensicRun",
     "InvestigatorComment",
     "Job",
     "JobEvent",

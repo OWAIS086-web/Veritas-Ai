@@ -54,6 +54,21 @@ The override removes the published Postgres and Redis ports, sets `VERITAS_ENV=p
 - No other service depends on it. If it is down, the API serves graphs from Postgres (`X-Graph-Source: postgres`), `/system/health` shows `graph.status = error`, and the outbox keeps the changes until it is back.
 - The worker runs Celery beat embedded (`celery worker -B`). It drains the graph outbox every 15 s and reconciles every 10 minutes, so no extra scheduler container is needed. With more than one worker, run beat in only one of them.
 - `VERITAS_NEO4J_NAMESPACE` separates deployments or test runs that share one Neo4j. The integration tests use a random namespace.
+
+## Document forensics (Phase 5)
+- Forensics adds no service. It runs in the existing worker as the last processing stage, using PyMuPDF and OpenCV, which are already installed.
+- Migration 0005 is applied by the `migrate` service on `docker compose up`.
+- Settings (`.env`, passed through by Compose):
+  - `VERITAS_FORENSICS_ENABLED` (true)
+  - `VERITAS_FORENSICS_DPI` (110)
+  - `VERITAS_FORENSICS_MAX_PAGES` (20)
+  - `VERITAS_FORENSICS_NOISE_K` (6.0)
+  - `VERITAS_FORENSICS_VERSION_SSIM` (0.6)
+  - `VERITAS_FORENSICS_STAMP_THRESHOLD` (0.004)
+- The thresholds were calibrated on `sample-data/forensics` (see `docs/ai-pipeline.md`). Change them only with a recalibration.
+- Measured on the Docker stack (2026-11-23, CPU worker), from `document_stages` timestamps: 38 digital PDFs took 163 ms on average and 230 ms at most. One scanned PDF over 1 MB took 1.7 s.
+- To regenerate the fixtures: `uv run python scripts/generate_forensics_samples.py`, from `backend/`. The output is deterministic, and the hashes are recorded in `manifest.json`.
+- The smoke test checks that both shipment documents get a forensic run with the mandatory limitation.
 - To check an outage on the running stack: `pwsh -File scripts/graph-outage-check.ps1`. It stops and starts the `neo4j` container.
 - Data volumes now include `veritas_graphdata`.
 

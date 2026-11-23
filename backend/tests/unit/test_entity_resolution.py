@@ -131,10 +131,17 @@ def test_addresses_products_and_banks_become_entities_with_evidence_backed_edges
     rc = c.doc("payment_receipt", "rc.pdf")
     supplier = c.party(po, "supplier", "Global Trading Ltd")
     addr_value = "Unit 7, 88 Harbour Road, Kowloon, Hong Kong"
-    address = c.add(po, "supplier_address", addr_value,
-                    {"text": addr_value, "key": normalize_address(addr_value)}, "address")
-    for doc, value in ((ins, "1,000 units LED Panel Light 600x600 mm, 40 W"),
-                       (bl, "LED Panel Light 600x600 mm, 40 W, 100 cartons")):
+    address = c.add(
+        po,
+        "supplier_address",
+        addr_value,
+        {"text": addr_value, "key": normalize_address(addr_value)},
+        "address",
+    )
+    for doc, value in (
+        (ins, "1,000 units LED Panel Light 600x600 mm, 40 W"),
+        (bl, "LED Panel Light 600x600 mm, 40 W, 100 cartons"),
+    ):
         c.add(doc, "goods", value, {"text": value, "key": normalize_product(value)}, "product")
     c.party(rc, "bank", "Pacific Harbour Bank")
 
@@ -158,5 +165,7 @@ def test_addresses_products_and_banks_become_entities_with_evidence_backed_edges
     assert {e.source_id for e in goods_edges} == {ins, bl}
     assert all(e.type == "ASSOCIATED_WITH" for e in goods_edges)
     bank = next(e for e in entities if e.canonical_name == "Pacific Harbour Bank")
-    assert any(e.source_id == rc and e.target_id == bank.id and e.properties["role"] == "bank"
-               for e in graph.edges)
+    assert any(
+        e.source_id == rc and e.target_id == bank.id and e.properties["role"] == "bank"
+        for e in graph.edges
+    )

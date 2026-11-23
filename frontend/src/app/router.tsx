@@ -10,6 +10,7 @@ import { DocumentPage } from "@/features/documents/DocumentPage";
 import { DocumentsPage } from "@/features/documents/DocumentsPage";
 import { FindingDetailPage } from "@/features/findings/FindingDetailPage";
 import { FindingsPage } from "@/features/findings/FindingsPage";
+import { ForensicsPage } from "@/features/forensics/ForensicsPage";
 import { GraphPage } from "@/features/graph/GraphPage";
 import { CaseWorkspacePage } from "@/features/investigations/CaseWorkspacePage";
 import { CreateInvestigationPage } from "@/features/investigations/CreateInvestigationPage";
@@ -46,6 +47,7 @@ export const routes: RouteObject[] = [
       { path: "documents", element: <DocumentsPage /> },
       { path: "documents/:documentId", element: <DocumentPage /> },
       { path: "graph", element: <GraphPage /> },
+      { path: "forensics", element: <ForensicsPage /> },
       { path: "findings", element: <FindingsPage /> },
       { path: "findings/:findingId", element: <FindingDetailPage /> },
       { path: "audit", element: <AuditLogsPage /> },

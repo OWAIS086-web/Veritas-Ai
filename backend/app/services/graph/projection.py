@@ -236,11 +236,15 @@ def project(
             address, party = named.get(address_field), named.get(party_field)
             if address is None or party is None:
                 continue
-            a, p = entity_of.get(address.field_id), entity_of.get(party.field_id)
-            if a is not None and p is not None:
+            address_entity = entity_of.get(address.field_id)
+            party_entity = entity_of.get(party.field_id)
+            if address_entity is not None and party_entity is not None:
                 edges.add(
-                    "BELONGS_TO", ("entity", a.id), ("entity", p.id),
-                    [address.field_id, party.field_id], role=address_field,
+                    "BELONGS_TO",
+                    ("entity", address_entity.id),
+                    ("entity", party_entity.id),
+                    [address.field_id, party.field_id],
+                    role=address_field,
                 )
 
     numbers: dict[tuple[str, str], list[FieldObs]] = {}

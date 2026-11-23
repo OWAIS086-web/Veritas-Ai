@@ -38,6 +38,9 @@ flowchart TD
   E --> J[Extraction: rules, or provider then verify]
   J --> V[Anti-fabrication check: value must appear on cited page]
   V --> K[(extracted_fields)]
+  K --> FX[Forensics stage: PDF structure, compression, version, stamps]
+  D --> FX
+  FX --> FR[(forensic_runs + forensic_anomalies, separate from findings)]
 ```
 
 ## Investigation workflow (Phase 6)
@@ -59,7 +62,7 @@ Each agent has a tool allowlist, a Pydantic output model, a maximum iteration co
 | jobs | `app/services/jobs`, `app/workers` | Persisted job state, Celery tasks, SSE event streams. |
 | ingestion | `app/services/ingestion` | Upload, validation, hashing, duplicate detection, storage. Never modifies originals. |
 | classification, ocr, parsing, extraction | `app/services/...` | Document type, text and layout, structured fields. Writes `document_pages` and `extracted_fields` only. |
-| forensics | `app/services/forensics` | PDF structure and visual analysis. Results stored separately from extraction. |
+| forensics (built) | `app/services/forensics`, `app/api/v1/forensics.py` | PDF structure and visual analysis: pure analyses (`pdf_structure`, `visual`, `versions`, `stamps`) orchestrated by `analyze.py`, and `runner.py` as the fifth pipeline stage, after `validate`. It reads the original bytes, the extracted field boxes (to relate regions to values) and the superseded version. Results are stored in `forensic_runs` and `forensic_anomalies`, separate from extraction and from findings. Severity is capped at medium, and every run states its limitations. Depends on core, identity and ingestion, as in the matrix. Reading `extracted_fields` and `documents` rows is the only coupling to extraction. |
 | entity_resolution | `app/services/entity_resolution` | Entity normalization and matching. |
 | comparison | `app/services/comparison` | Deterministic cross-document rules first, LLM interpretation last. Creates findings and evidence. Pure rules (`rules/*.py`) and engine, plus `persist.py` for the idempotent upsert. It runs at the end of every processing job and on demand (`cases.compare` task). |
 | graph (built) | `app/services/graph`, `app/integrations/graph`, `app/workers/graph_tasks.py` | The pure projection (`projection.py`), the Postgres rebuild in the comparison's transaction with an outbox row (`service.py`), the outbox drain and reconciler (`sync.py`) on the worker's embedded beat, and Neo4j (`neo4j_store.py`, namespaced, parameterized Cypher). The API reads Neo4j and falls back to Postgres. Depends on comparison and entity_resolution, as in the matrix below. |

@@ -41,6 +41,8 @@ ENDPOINTS: list[Endpoint] = [
     ("GET", "/api/v1/entities/{random}", "graph:read", None),
     ("GET", "/api/v1/entities/{random}/relationships", "graph:read", None),
     ("GET", "/api/v1/relationships/{random}/evidence", "graph:read", None),
+    ("GET", "/api/v1/documents/{random}/forensics", "forensics:read", None),
+    ("GET", "/api/v1/cases/{random}/forensics", "forensics:read", None),
 ]
 
 

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, ScanText, Search, ZoomIn, ZoomOut } from "lucide-react";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 
 import { ErrorState } from "@/components/QueryState";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import { FieldsPanel } from "@/features/viewer/FieldsPanel";
 import { ImageCanvas } from "@/features/viewer/ImageCanvas";
 import { ParsedView } from "@/features/viewer/ParsedView";
 import { fieldLabel } from "@/features/documents/labels";
+import { useWidth } from "@/hooks/useWidth";
 import { api } from "@/services/api";
 import type { DocumentOut, FieldOut } from "@/types/api";
 
@@ -22,18 +23,6 @@ const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 interface LineJson {
   text: string;
   bbox: number[] | null;
-}
-
-function useWidth<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-  const [width, setWidth] = useState(800);
-  useEffect(() => {
-    if (!ref.current) return undefined;
-    const observer = new ResizeObserver(([entry]) => entry && setWidth(entry.contentRect.width));
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  return { ref, width };
 }
 
 export function DocumentViewer({ doc, initialFieldId }: { doc: DocumentOut; initialFieldId?: string | null }) {

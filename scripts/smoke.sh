@@ -82,6 +82,18 @@ contradicts=$(curl -fsS "$API/cases/$CASE/graph" -H "$AUTH" | \
 [ "$gsource" = "neo4j" ] && [ "$contradicts" = "1" ] && pass "evidence graph (Neo4j, 1 contradiction)" \
   || fail "evidence graph" "source=$gsource contradicts=$contradicts"
 
+forensic=$(curl -fsS "$API/cases/$CASE/forensics" -H "$AUTH" | json "' '.join(r['document_id'] + ':' + str(r['status']) for r in d)")
+fbad=0; fcount=0
+for row in $forensic; do
+  fcount=$((fcount + 1)); doc="${row%%:*}"
+  [ "${row#*:}" = "succeeded" ] || fbad=1
+  lim=$(curl -fsS "$API/documents/$doc/forensics" -H "$AUTH" | \
+    json "any('does not establish document alteration' in l for l in d['limitations'])")
+  [ "$lim" = "True" ] || fbad=1
+done
+[ "$fcount" = "2" ] && [ "$fbad" = "0" ] && pass "document forensics (2 runs with limitations)" \
+  || fail "document forensics" "documents=$fcount problems=$fbad"
+
 actions=$(curl -fsS "$API/audit-logs" -H "$AUTH" | json "' '.join(i['action'] for i in d['items'])")
 case "$actions" in *auth.register*auth.login*|*auth.login*auth.register*) pass "audit log recorded the session";;
   *) fail "audit log" "$actions";; esac

@@ -1,0 +1,89 @@
+{
+  "label": "SYNTHETIC DEMONSTRATION DATA",
+  "files": {
+    "clean_invoice.pdf": {
+      "sha256": "cff93606ac7eddbffa8340b1271c1b6875278c210fad00233db808f15ec7adb5",
+      "size": 6709
+    },
+    "edited_invoice.pdf": {
+      "sha256": "57365eaa97cb4560fb9a081d1bd2bc2c1ca6e917dbb79ec909a104c16c5d17af",
+      "size": 10278
+    },
+    "backdated_invoice.pdf": {
+      "sha256": "70b56fa72b8a760ffc10117ad84862e29be2803ec74063e467c00a7dc8df2c86",
+      "size": 6709
+    },
+    "receipt_same_stamp.pdf": {
+      "sha256": "3afdac256b16134b6fd30ac12bd41a1d44785f034c001b25af40b8c21fd921fd",
+      "size": 5412
+    },
+    "receipt_altered_stamp.pdf": {
+      "sha256": "fbf922b5e78aa6658e27c32d82a094a93a39c21b63b544d2f51f30199eb48bee",
+      "size": 5411
+    },
+    "versions/v1/forensic_invoice.pdf": {
+      "sha256": "71e3238c49f67419700d42f9909ff0b7d265aed0c7b5b4378e2fae000df99efe",
+      "size": 6709
+    },
+    "versions/v2/forensic_invoice.pdf": {
+      "sha256": "e602a2f1ae009b12645187d9c5aace6a71e5194292d45320eb2320bcf77a975f",
+      "size": 6709
+    },
+    "clean_scan.pdf": {
+      "sha256": "f8424e857f24250e07545ba408c65af8f17ec31ac3a22dbbe55fb34801559778",
+      "size": 2168602
+    },
+    "recompressed_scan.pdf": {
+      "sha256": "4a5a71064212a12665f4e0faaa8c6b0f251847c5ba21da1aaa74748748bb1e12",
+      "size": 2141357
+    }
+  },
+  "regions": {
+    "total": [
+      196.0,
+      219.0,
+      320.0,
+      234.0
+    ],
+    "stamp": [
+      374.0,
+      584.0,
+      486.0,
+      696.0
+    ],
+    "signature": [
+      76.0,
+      629.0,
+      256.0,
+      673.0
+    ],
+    "jpeg_region": [
+      165.1,
+      203.5,
+      349.4,
+      249.6
+    ]
+  },
+  "expected": {
+    "clean_invoice.pdf": [],
+    "clean_scan.pdf": [],
+    "edited_invoice.pdf": [
+      "incremental_update",
+      "metadata_inconsistency",
+      "font_inconsistency"
+    ],
+    "backdated_invoice.pdf": [
+      "metadata_inconsistency"
+    ],
+    "recompressed_scan.pdf": [
+      "localized_compression_anomaly"
+    ],
+    "versions/v2/forensic_invoice.pdf": [
+      "version_difference"
+    ],
+    "receipt_altered_stamp.pdf": [
+      "stamp_appearance_variation"
+    ],
+    "receipt_same_stamp.pdf": []
+  }
+}

@@ -63,7 +63,8 @@ async def test_seven_document_case_processes_to_ground_truth(
         assert doc["status"] == "completed", doc["error"]
         assert doc["doc_type"] == truth["doc_type"]
         assert doc["language"] == "en" and doc["page_count"] >= 1
-        assert [s["stage"] for s in doc["stages"]] == ["parse", "classify", "extract", "validate"]
+        assert [s["stage"] for s in doc["stages"]] == list(document_pipeline.STAGES)
+        assert document_pipeline.STAGES[-1] == "forensics"
         assert all(s["status"] == "succeeded" for s in doc["stages"])
         fields = await fields_of(client, acct, doc["id"])
         assert fields["document_number"]["value"] == truth["document_number"]
@@ -102,7 +103,7 @@ async def test_seven_document_case_processes_to_ground_truth(
             )
         )
     assert events[0] == "queued" and events[-1] == "succeeded"
-    assert events.count("document_completed") == 7 and events.count("stage_completed") == 28
+    assert events.count("document_completed") == 7 and events.count("stage_completed") == 35
 
     stats = (await client.get("/api/v1/stats/overview", headers=acct.headers)).json()
     assert stats["documents_processed"]["value"] == 7
@@ -220,7 +221,7 @@ async def test_rerunning_stages_creates_no_duplicates(
             row.status = "pending"
     await document_pipeline.process_document(acct.organization_id, doc_id, get_store())
     after = await counts()
-    assert after[:2] == before[:2] and after[2] == before[2] + 4
+    assert after[:2] == before[:2] and after[2] == before[2] + 5
 
 
 async def test_failing_stage_retries_then_fails_and_retry_resumes(

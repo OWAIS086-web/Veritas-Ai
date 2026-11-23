@@ -74,3 +74,34 @@ Provider: local Ollama 0.40 (OpenAI-compatible API), model `qwen2.5:7b-instruct`
 The comparison result is unchanged with the model path: one `financial_discrepancy` of USD 20,000.00 with 5 evidence items. On the format variants, the comparison reported the three invoice copies (one number, three files) and the receipt in two formats as duplicates, and the customs declaration as missing.
 
 `tests/live/test_live_provider.py` (`pytest -m live`, 7 passed in 17 s) checks the same 7 documents directly against the provider. Every value that passes verification matches the ground truth, and every rejected value carries a reason. Page-image extraction with the vision model (`qwen2.5vl:7b`) is not implemented; the provider receives text only.
+
+# Document forensics (Phase 5)
+
+Forensics is the fifth processing stage, after `validate`. It reads the original bytes, never modifies them, and stores its results in `forensic_runs` and `forensic_anomalies`, separate from extraction. No model is called. Every anomaly comes from a measured value, and that value is stored in the anomaly's `metrics`. An anomaly is an observation for review. It never creates a finding, and its severity is at most `medium`. Every run carries the limitation "A visual or structural inconsistency alone does not establish document alteration or forgery." The full design is in `.kiro/specs/document-forensics/design.md`.
+
+| Analysis | Applies to | Anomalies |
+|---|---|---|
+| PDF structure (PyMuPDF and a byte scan) | PDFs | `incremental_update` (low), `metadata_inconsistency` (medium if the producer changed between revisions, low if the modification date is before the creation date), `font_inconsistency` (medium, a single-use font over an extracted amount, reference, quantity or date) |
+| Compression (OpenCV) | Scanned pages and images. Rendered vector pages are recorded as `not_applicable`. | `localized_compression_anomaly`: background noise in 32 px blocks drops to less than half the page median, with z < −6 |
+| Version comparison (ECC or ORB alignment, SSIM) | A document that supersedes an earlier upload with the same filename | `version_difference` (medium over an extracted field, low elsewhere) |
+| Stamps and signatures (HSV ink mask, contours) | PDFs and images | `stamp_appearance_variation` (medium): `unmatched_ink` against a stamp of compatible size and colour on another document of the case is above 0.004 |
+
+## Calibration on the forensic fixtures (SYNTHETIC DEMONSTRATION DATA)
+`sample-data/forensics` is generated deterministically by `backend/scripts/generate_forensics_samples.py`. `manifest.json` records each file's hash, the planted regions and the expected anomaly types.
+
+| Signal | Altered fixture | Unaltered |
+|---|---|---|
+| Version comparison: local SSIM of the changed total | 0.201 | Other candidate components 0.50–0.71, all rejected by the 0.45 cut-off |
+| Stamp comparison: `unmatched_ink` | 0.0112 | Same stamp 0.0, re-scanned stamp 0.0001 |
+| Compression: blocks below the noise cut-off | The re-encoded region over the total | None on the clean scan |
+
+Rejected alternatives, as measured:
+- An 8×8 DCT blockiness score didn't separate the fixtures. The rendered vector text alone reached z 7.34. It is kept as a recorded metric only.
+- SSIM of 96 px stamp masks ranked the altered stamp (0.969) above an honest scan of the same stamp (0.936).
+
+Result through the real pipeline (`tests/integration/test_forensics.py`): every fixture yields exactly its expected anomaly types. Each region overlaps its planted change, and each field reference resolves to an `extracted_fields` row of the same document. The clean invoice, the clean scan and the receipt with the same stamp yield no anomaly. The seven shipment-case PDFs also yield no anomaly, so they serve as negative controls.
+
+Limits:
+- The thresholds were calibrated on synthetic documents only. Real scans, re-saved PDFs and signing tools produce incremental updates and producer changes for legitimate reasons.
+- Stamps are compared only within one case.
+- Signatures are located but never compared or judged.

@@ -74,6 +74,14 @@ Owner-owned `SECURITY DEFINER` functions, executable only by `veritas_app`, used
 
 Neo4j holds a derived copy. Nodes are labelled `:VeritasNode:Document|Entity|Finding`, and edges are typed by relationship type. Each node and edge carries `ns`, `organization_id` and `case_id`. There is a uniqueness constraint on `id` and an index on `(ns, organization_id, case_id)`. It can be rebuilt from Postgres at any time (`POST /cases/{id}/graph/rebuild`, or the reconciler).
 
+## Tables (migration 0005)
+| Table | `veritas_app` grants | Notes |
+|---|---|---|
+| forensic_runs | SELECT, INSERT, DELETE | One run per `(document, pipeline_version)`. A rerun deletes the old run and inserts a new one in the same transaction, so rows are never updated. Columns: `analysis_types text[]`, `pdf_metadata jsonb` (named so because `metadata` is reserved by SQLAlchemy), `structure jsonb` (per-analysis details such as revisions, fonts, measured blocks, page SSIM, stamp descriptors, plus `errors`), `limitations jsonb`, and `status` (`succeeded`, `partial` or `not_applicable`). |
+| forensic_anomalies | SELECT, INSERT, DELETE | `type`, `page_number`, `region jsonb` (top-left origin, page units), `severity` with `CHECK (severity IN ('info','low','medium'))` (`ck_forensic_anomalies_severity_capped`), `explanation`, `metrics jsonb` and `requires_review`. Deleted with the run through `ON DELETE CASCADE`. |
+
+Forensic results are kept apart from extraction. They don't reference findings, and findings don't reference them.
+
 Original files are not stored in Postgres. They live in object storage under `<organization_id>/…` and are never modified.
 
 ## Testing

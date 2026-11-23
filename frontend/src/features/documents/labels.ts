@@ -42,6 +42,7 @@ export const STAGE_LABELS: Record<string, string> = {
   classify: "Classify",
   extract: "Extract",
   validate: "Validate",
+  forensics: "Forensics",
 };
 
 export const METHOD_LABELS: Record<string, string> = {

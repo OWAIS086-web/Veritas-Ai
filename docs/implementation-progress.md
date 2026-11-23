@@ -17,7 +17,8 @@ This file records only verified status. "Completed" means the listed tests were 
 | 2: Ingestion and intelligence | Completed (live provider run done 2026-11-23 with local Ollama `qwen2.5:7b-instruct`) | Quality gate 8/8 PASS (204 backend + 30 frontend tests, 0 skipped, real PaddleOCR and Docling). Playwright 5/5 including the 7-document upload and the scanned invoice. Smoke 10/10 on the stack and on a clean deployment. Gitleaks clean. |
 | 3: Cross-document intelligence | Completed (optional LLM interpretation not built) | Quality gate 8/8 PASS (251 backend + 37 frontend tests, 0 skipped). Demo case: exactly one `financial_discrepancy` of USD 20,000.00 with 5 evidence items, no quantity finding. Playwright 6/6, smoke 11/11 on the rebuilt stack. Gitleaks clean. |
 | 4: Evidence knowledge graph | Completed | Quality gate 8/8 PASS (269 backend + 43 frontend tests, 0 skipped; 7 live tests run separately). Demo graph: one supplier entity from both spellings, 6 CONTRADICTS edges carrying the finding id, every edge backed by evidence (enforced by the database). Real Neo4j outage and recovery on the stack. Playwright 7/7, smoke 12/12, gitleaks clean. |
-| 5–10 | Not Started | Specs written |
+| 5: Document forensics | Completed | Quality gate 8/8 PASS (320 backend + 47 frontend tests, 0 skipped; 7 live tests deselected). Every forensic fixture yields exactly its expected anomaly types through the real pipeline, and the 7 shipment PDFs yield none. Severity capped at medium by the database. Playwright 9/9, smoke 13/13, gitleaks clean. |
+| 6–10 | Not Started | Specs written |
 
 ---
 
@@ -233,14 +234,54 @@ Spec tasks ticked: `evidence-knowledge-graph/tasks.md` 6/6. The spec's migration
 ### Next (Phase 5: document forensics)
 PDF structure analysis (incremental updates, metadata, fonts, producer history), visual analysis with OpenCV (stamp and signature regions, copy-move hints), version comparison, results stored separately from extraction with their limitations, and the Forensics Lab UI.
 
-## Loose ends from Phases 2–4 (In Progress, not verified)
-Started 2026-11-23. During this work the sandbox lost access to `uv`, `node`, `npm`, `docker` and `pwsh` (Windows PowerShell 5.1, user profile unreadable), so **none of the changes below have been tested yet**.
+## Loose ends from Phases 2–4
+Started 2026-11-23. During the work the sandbox lost access to `uv`, `node`, `npm`, `docker` and `pwsh`. **Verified after the tools came back:** the quality gate passed 8/8 (272 backend + 43 frontend tests, 0 skipped). mypy found one defect: a variable in the new address block shadowed a later loop variable of a different type. It was fixed before the gate run.
 - **Written:** optional fields `supplier_address` and `buyer_address` (value type `address`), `goods` (value type `product`) and `bank` (party).
   - The fields are in `app/services/extraction/fields.py`.
   - The normalizers `normalize_address` and `normalize_product` are in `normalize.py`.
   - The schemas are in `validation.py`.
 - **Written:** address, product and bank entities in `entity_resolution/resolve.py`, and `BELONGS_TO` address→party edges backed by both fields in `graph/projection.py`. The UI type filter now has Addresses and Products.
-- **Written, not run:** the tests in `tests/property/test_normalize.py`, `tests/unit/test_entity_resolution.py` and `tests/integration/test_graph.py`.
+- **Verified** by the gate above: the tests in `tests/property/test_normalize.py`, `tests/unit/test_entity_resolution.py` and `tests/integration/test_graph.py`.
 - **Not started:** page-image extraction with the vision model (`qwen2.5vl:7b`).
 - **Moved to Phase 6:** the BGE embedding and reranker models (retrieval).
-- **Blocked:** the first git commit and push to `github.com/OWAIS086-web/Veritas-Ai`. Git in the sandbox reports "dubious ownership", and pushing needs the user's credentials. The user runs it from their own terminal.
+- **Done (by the user):** the first push to the public repository https://github.com/OWAIS086-web/Veritas-Ai. Checked from GitHub on 2026-11-23: the README renders, `LICENSE` is MIT, and `.kiro/steering` is present. The push included the entity changes listed above before their tests had run. They have been verified since.
+
+## Phase 5: Document forensics
+Spec tasks ticked: `document-forensics/tasks.md` 7/7. `design.md` was rewritten to describe what was built: migration 0005, the `pdf_metadata` column, the stage after `validate`, the calibrated methods and the deviations from the requirements text (decision metrics for 2.1 and 2.3).
+
+| Task | Status | Files | Verification |
+|---|---|---|---|
+| 5.1 Migration 0005 and models | Completed | `app/models/forensics.py`, `migrations/versions/0005_forensics.py` | Migration cycle and RLS coverage tests. Grants SELECT, INSERT and DELETE only. Severity CHECK `info, low, medium`. |
+| 5.2 PDF structure | Completed | `app/services/forensics/pdf_structure.py` | `tests/unit/test_forensics_structure.py` (11): incremental update, producer change across revisions, backdated modification date, single-use font over the extracted total. The clean invoice gives none of these. |
+| 5.3 Compression analysis | Completed | `app/services/forensics/{imaging,visual}.py` | `tests/unit/test_forensics_visual.py`: the re-encoded region of the recompressed scan is flagged, overlapping the planted region. The clean scan is not flagged, and rendered vector pages are `not_applicable`. |
+| 5.4 Version comparison | Completed | `app/services/forensics/versions.py` | The changed total in the v1/v2 pair is found (local SSIM 0.201). Other components (0.50–0.71) are rejected. Identical versions give nothing. |
+| 5.5 Stamps and signatures | Completed | `app/services/forensics/stamps.py` | Stamp and signature located on the fixtures. The altered stamp is flagged (`unmatched_ink` 0.0112). The same stamp (0.0) and a re-scanned copy (0.0001) are not. |
+| 5.6 Stage, API, limitation property | Completed | `analyze.py`, `runner.py`, `queries.py`, `workflows/document_pipeline.py`, `api/v1/forensics.py`, `schemas/forensics.py`, `core/permissions.py` (`forensics:read` for every role) | `tests/property/test_forensics_invariants.py` (5) and `tests/integration/test_forensics.py` (8), described below. RBAC matrix extended. |
+| 5.7 Forensics Lab UI | Completed | `frontend/src/features/forensics/*`, `hooks/useWidth.ts` (shared with the document viewer) | Vitest (5) and Playwright end to end (edited invoice: three anomaly types, overlay on the page, the link to the extracted field, the limitation). Screenshot `docs/screenshots/forensics-lab.png`. |
+
+### Test results (2026-11-23, final code)
+| Check | Result |
+|---|---|
+| Quality gate (`scripts/quality-gate.ps1`) | **8/8 PASS**: ruff, mypy, pytest 320 passed (0 skipped, 7 live deselected), OpenAPI contract, frontend typecheck, lint, Vitest 47 |
+| Forensics integration (`tests/integration/test_forensics.py`, real Postgres, object storage and pipeline) | 8 passed. Every fixture gives exactly its manifest's anomaly types. Each region overlaps its planted change. Each `fields`/`field_id` in the metrics resolves to an `extracted_fields` row of the same document. The case summary is ordered by medium count. No finding is created. A rerun is idempotent. The database refuses `high`. Cross-org 404 on both endpoints, and RLS on both tables. |
+| Negative control | 28 forensic runs on the 7 shipment-case PDFs (from the stack's e2e and smoke runs): **0 anomalies** |
+| Playwright on the rebuilt stack | 9/9 (2 new: the Forensics Lab flow and its screenshot) |
+| Smoke (`scripts/smoke.ps1`) | 13/13, including the new forensics check (both documents analysed, limitation present). The same check was added to `smoke.sh`, but it wasn't run here because there is no bash. |
+| Stage timing | 38 digital PDFs: mean 163 ms, max 230 ms. One scan over 1 MB: 1.7 s. |
+| Gitleaks (official container, 784 committable files) | No leaks |
+
+### Defects found and fixed during Phase 5
+1. **Rerun test assumed a fixed anomaly count.** The first rerun of a document can correctly add a stamp anomaly when a document with a different stamp was processed later in the case. The test now compares two reruns with the same inputs. This was a test defect, not a product defect.
+2. **Awkward explanation text** for a producer change ("revisions of the file name different producing software"). Reworded.
+3. **Unused `type: ignore`** in the runner and a variable shadowing a loop variable in the case summary. Caught by mypy.
+
+### Known limitations (Phase 5)
+- Thresholds were calibrated on synthetic fixtures only. Legitimate signing, form filling and re-saving produce incremental updates and producer changes, and the explanations say so.
+- Signatures are located but never compared. The product never judges a signature.
+- Stamps are compared only with other documents of the same case.
+- No copy-move detection was built. It was mentioned in the Phase 4 "Next" note but isn't part of the forensics spec.
+- Forensic anomalies don't feed findings or risk scores yet. That belongs to Phase 6 (investigation) and Phase 7 (risk).
+- **Repository hygiene (needs your decision):** commit `c5397bf` ("Initial commit: VERITAS AI backend") added a second, stale copy of the backend at the repository root: `app/` (256 files including `__pycache__`), `migrations/`, `tests/`, `pyproject.toml`, `uv.lock`, `alembic.ini`, `openapi.json` and `.dockerignore`. The real code is under `backend/`. Nothing builds from the root copy. Removing it is a separate commit for you to make.
+
+### Next (Phase 6: autonomous investigation)
+The LangGraph workflow with eight bounded agents, the permissioned tool gateway, the reference validator, agent event logging and the human-review interrupt. The BGE embeddings and reranker also move here.

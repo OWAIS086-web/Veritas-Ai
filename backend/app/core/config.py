@@ -84,6 +84,15 @@ class Settings(BaseSettings):
     # threshold and this value they stay separate and are flagged possible_duplicate.
     entity_merge_threshold: float = Field(default=0.95, ge=0.5, le=1.0)
 
+    # Document forensics. Thresholds were calibrated on the generated fixtures and the
+    # shipment samples (see docs/ai-pipeline.md).
+    forensics_enabled: bool = True
+    forensics_dpi: int = Field(default=110, ge=72, le=300)
+    forensics_max_pages: int = Field(default=20, ge=1, le=500)
+    forensics_noise_k: float = Field(default=6.0, ge=2.0, le=20.0)
+    forensics_version_ssim: float = Field(default=0.6, ge=0.1, le=0.99)
+    forensics_stamp_threshold: float = Field(default=0.004, ge=0.0005, le=0.5)
+
     # Model provider (OpenAI-compatible). Empty base URL means "no provider configured":
     # the deterministic rules extractor is used and recorded as such.
     llm_base_url: str = ""

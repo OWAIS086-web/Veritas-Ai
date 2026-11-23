@@ -89,3 +89,29 @@ test("intelligence graph of the shipment case", async ({ page }) => {
   await page.waitForTimeout(800);
   await page.screenshot({ path: path.resolve(here, "../../../docs/screenshots/intelligence-graph.png"), fullPage: false });
 });
+
+test("forensics lab with an edited invoice", async ({ page }) => {
+  test.setTimeout(5 * 60_000);
+  const id = Date.now().toString(36);
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.goto("/register");
+  await page.getByLabel("Full name").fill("Screenshot Analyst");
+  await page.getByLabel("Organization name").fill(`Screenshot Forensics ${id}`);
+  await page.getByLabel("Work email").fill(`shot-f-${id}@example.com`);
+  await page.getByLabel("Password").fill(`shot-password-${id}`);
+  await page.getByRole("button", { name: "Create organization" }).click();
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+  await page.goto("/investigations/new");
+  await page.getByLabel("Case title").fill("Forensic fixtures (SYNTHETIC DEMONSTRATION DATA)");
+  const dir = path.resolve(here, "../../../sample-data/forensics");
+  await page.getByLabel("Choose documents to upload").setInputFiles(
+    ["clean_invoice.pdf", "edited_invoice.pdf", "backdated_invoice.pdf"].map((f) => path.join(dir, f)));
+  await page.getByRole("button", { name: "Create and process 3 documents" }).click();
+  await expect(page.getByRole("list", { name: "Case documents" }).getByText("Completed")).toHaveCount(3, { timeout: 4 * 60_000 });
+  await page.getByRole("link", { name: "Forensics Lab" }).click();
+  const anomalies = page.getByRole("list", { name: "Anomalies" });
+  await anomalies.getByRole("button", { name: /Font inconsistency/ }).click();
+  await expect(page.getByRole("button", { name: "Font inconsistency (medium)" })).toBeVisible({ timeout: 30_000 });
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: path.resolve(here, "../../../docs/screenshots/forensics-lab.png"), fullPage: false });
+});

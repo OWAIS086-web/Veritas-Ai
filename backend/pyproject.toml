@@ -83,7 +83,11 @@ ignore_missing_imports = true
 
 # PyMuPDF ships no type hints; its calls are confined to the parsing and sample modules.
 [[tool.mypy.overrides]]
-module = ["app.services.parsing.pdf"]
+module = [
+  "app.services.parsing.pdf",
+  "app.services.forensics.imaging",
+  "app.services.forensics.pdf_structure",
+]
 disallow_untyped_calls = false
 
 [tool.pytest.ini_options]

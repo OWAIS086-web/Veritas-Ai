@@ -195,6 +195,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/forensics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Forensic summary of every document of a case, documents to review first */
+        get: operations["case_forensics_api_v1_cases__case_id__forensics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases/{case_id}/graph": {
         parameters: {
             query?: never;
@@ -289,6 +306,23 @@ export interface paths {
         };
         /** Latest extraction run and its fields with provenance */
         get: operations["get_extractions_api_v1_documents__document_id__extractions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/documents/{document_id}/forensics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest forensic run of a document, with its anomalies and limitations */
+        get: operations["document_forensics_api_v1_documents__document_id__forensics_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1306,6 +1340,115 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** ForensicAnomalyOut */
+        ForensicAnomalyOut: {
+            /** Explanation */
+            explanation: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /** Page Number */
+            page_number: number | null;
+            /**
+             * Region
+             * @description [x0, y0, x1, y1], top-left origin, in the document's page units
+             */
+            region: number[] | null;
+            /** Requires Review */
+            requires_review: boolean;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "info" | "low" | "medium";
+            /** Type */
+            type: string;
+        };
+        /** ForensicRunOut */
+        ForensicRunOut: {
+            /** Analysis Types */
+            analysis_types: string[];
+            /** Anomalies */
+            anomalies?: components["schemas"]["ForensicAnomalyOut"][];
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Limitations */
+            limitations: string[];
+            /** Pdf Metadata */
+            pdf_metadata: {
+                [key: string]: unknown;
+            };
+            /** Pipeline Version */
+            pipeline_version: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "succeeded" | "partial" | "not_applicable";
+            /** Structure */
+            structure: {
+                [key: string]: unknown;
+            };
+        };
+        /** ForensicSummaryOut */
+        ForensicSummaryOut: {
+            /** Analysis Types */
+            analysis_types?: string[];
+            /**
+             * Anomalies
+             * @default 0
+             */
+            anomalies: number;
+            /** Doc Type */
+            doc_type: string | null;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Low
+             * @default 0
+             */
+            low: number;
+            /**
+             * Medium
+             * @default 0
+             */
+            medium: number;
+            /** Mime Type */
+            mime_type: string;
+            /**
+             * Status
+             * @description Status of the latest forensic run; null if none
+             */
+            status: string | null;
+            /** Types */
+            types?: string[];
         };
         /** GraphEdgeOut */
         GraphEdgeOut: {
@@ -2688,6 +2831,64 @@ export interface operations {
             };
         };
     };
+    case_forensics_api_v1_cases__case_id__forensics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForensicSummaryOut"][];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     case_graph_api_v1_cases__case_id__graph_get: {
         parameters: {
             query?: {
@@ -3005,6 +3206,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExtractionOut"] | null;
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    document_forensics_api_v1_documents__document_id__forensics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForensicRunOut"] | null;
                 };
             };
             /** @description Missing or invalid credentials */

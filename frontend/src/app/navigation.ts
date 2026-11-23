@@ -31,10 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
     pending: { phase: 7, summary: "Open source documents at the cited page with highlighted evidence and side-by-side comparison." },
   },
   { label: "Intelligence Graph", path: "/graph", icon: Network },
-  {
-    label: "Forensics Lab", path: "/forensics", icon: Microscope,
-    pending: { phase: 5, summary: "Inspect PDF structure and visual anomalies, with their limitations stated." },
-  },
+  { label: "Forensics Lab", path: "/forensics", icon: Microscope },
   { label: "Findings", path: "/findings", icon: ShieldAlert },
   {
     label: "Reports", path: "/reports", icon: FileText,

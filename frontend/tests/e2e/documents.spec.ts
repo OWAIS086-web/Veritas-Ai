@@ -1,4 +1,5 @@
-// Req: document-ingestion 2.x; document-intelligence 1.x, 3.x, 4.x, 6.1 (end to end, real stack)
+// Req: document-ingestion 2.x; document-intelligence 1.x, 3.x, 4.x, 6.1; document-forensics 3.x, 4.x
+// (end to end, real stack)
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -130,4 +131,34 @@ test("a scanned invoice goes through OCR and keeps page coordinates", async ({ p
   await expect(total).toContainText("48,000.00");
   await expect(total).toContainText("OCR (PaddleOCR)");
   await expect(total).not.toContainText("confidence not measured");
+});
+
+test("the Forensics Lab shows the anomalies of an edited invoice on the page, with limitations", async ({ page }) => {
+  test.setTimeout(5 * 60_000);
+  await registerFresh(page);
+  await page.goto("/investigations/new");
+  await page.getByLabel("Case title").fill("Forensic fixtures");
+  const dir = path.resolve(here, "../../../sample-data/forensics");
+  await page.getByLabel("Choose documents to upload").setInputFiles(
+    ["clean_invoice.pdf", "edited_invoice.pdf"].map((f) => path.join(dir, f)));
+  await page.getByRole("button", { name: "Create and process 2 documents" }).click();
+  const docs = page.getByRole("list", { name: "Case documents" });
+  await expect(docs.getByText("Completed")).toHaveCount(2, { timeout: 4 * 60_000 });
+
+  await page.getByRole("link", { name: "Forensics Lab" }).click();
+  const table = page.getByRole("table", { name: "Documents by forensic review priority" });
+  // The edited invoice is listed first: it has medium-severity anomalies, the clean one has none.
+  await expect(table.locator("tbody tr").first()).toContainText("edited_invoice.pdf");
+  await expect(table.locator("tbody tr").nth(1)).toContainText("None");
+  const anomalies = page.getByRole("list", { name: "Anomalies" });
+  for (const label of ["Font inconsistency", "Incremental update", "Metadata inconsistency"]) {
+    await expect(anomalies.getByText(label, { exact: true })).toBeVisible();
+  }
+  await expect(page.getByRole("list", { name: "Limitations" }))
+    .toContainText("A visual or structural inconsistency alone does not establish document alteration or forgery.");
+  // The font anomaly is drawn on the page over the edited total and links the extracted field.
+  await anomalies.getByRole("button", { name: /Font inconsistency/ }).click();
+  await expect(page.getByRole("button", { name: "Font inconsistency (medium)" })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("link", { name: "field 1" }).click();
+  await expect(page.getByRole("button", { name: /Total amount/ }).first()).toBeVisible();
 });

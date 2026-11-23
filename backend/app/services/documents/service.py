@@ -37,7 +37,7 @@ from app.services.cases.service import get_case
 from app.services.identity.principal import Principal, RequestMeta
 from app.services.jobs import service as job_service
 
-STAGE_ORDER = {"parse": 0, "classify": 1, "extract": 2, "validate": 3}
+STAGE_ORDER = {"parse": 0, "classify": 1, "extract": 2, "validate": 3, "forensics": 4}
 PROCESS_KIND = "document.process"
 
 

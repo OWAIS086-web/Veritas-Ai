@@ -19,6 +19,8 @@ import type {
   RebuildOut,
   RelationshipOut,
   ExtractionOut,
+  ForensicRunOut,
+  ForensicSummaryOut,
   FindingDetail,
   FindingPage,
   FindingSummary,
@@ -220,6 +222,8 @@ export const api = {
     request<GraphOut>(`/cases/${caseId}/graph?${query(params)}`),
   rebuildGraph: (caseId: string) =>
     request<RebuildOut>(`/cases/${caseId}/graph/rebuild`, { method: "POST" }),
+  caseForensics: (caseId: string) => request<ForensicSummaryOut[]>(`/cases/${caseId}/forensics`),
+  documentForensics: (id: string) => request<ForensicRunOut | null>(`/documents/${id}/forensics`),
   entity: (id: string) => request<EntityOut>(`/entities/${id}`),
   entityRelationships: (id: string) => request<RelationshipOut[]>(`/entities/${id}/relationships`),
   relationshipEvidence: (id: string) => request<EdgeEvidenceOut[]>(`/relationships/${id}/evidence`),

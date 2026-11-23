@@ -18,7 +18,8 @@ Development happens phase by phase. The real, verified state of every feature is
 | 2 | Ingestion and document intelligence: upload validation, PDF/scan/image/Office/CSV/EML parsing, OCR, classification, extraction with page provenance, document viewer | Done (rules extractor only until a model provider is configured) |
 | 3 | Cross-document intelligence: deterministic comparison rules, findings with cited evidence and three separate scores, review decisions, Findings Center | Done (optional LLM interpretation not built) |
 | 4 | Evidence knowledge graph: entities and relationships in Postgres with database-enforced evidence, synced to Neo4j through an outbox, Intelligence Graph UI (React Flow) | Done |
-| 5+ | Document forensics, multi-agent investigation, reports | Not started |
+| 5 | Document forensics: PDF structure (incremental updates, producer history, single-use fonts), localized compression, version comparison, stamp variation. Observations with measured values and stated limitations, never verdicts. Forensics Lab UI with overlays on the page | Done |
+| 6+ | Multi-agent investigation, evidence explorer, risk, reports | Not started |
 
 Optional local models: set `VERITAS_LLM_BASE_URL` to an OpenAI-compatible server such as Ollama (see `docs/deployment.md`). Every value a model returns is kept only if it is found on the page it cites.
 

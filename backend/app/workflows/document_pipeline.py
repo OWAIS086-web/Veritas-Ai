@@ -42,13 +42,14 @@ from app.services.extraction import rules as rules_extract
 from app.services.extraction.merge import merge_llm_with_rules
 from app.services.extraction.result import ExtractedValue
 from app.services.extraction.validation import validate_values
+from app.services.forensics.runner import run_document_forensics
 from app.services.graph.service import drop_document_edges, rebuild_case_graph
 from app.services.jobs.runner import Emitter
 from app.services.ocr.service import decode_image
 from app.services.parsing.dispatch import ParseError, parse_document
 from app.services.parsing.model import Line, ParsedPage
 
-STAGES = ("parse", "classify", "extract", "validate")
+STAGES = ("parse", "classify", "extract", "validate", "forensics")
 logger = get_logger(__name__)
 StageFn = Callable[[uuid.UUID, Document], Awaitable[dict[str, Any]]]
 
@@ -299,7 +300,19 @@ def make_stages(store: ObjectStore) -> dict[str, StageFn]:
             raise StageError(f"invalid_persisted_fields:{','.join(problems)}")
         return {"fields": len(rows), "uncertain": [r.name for r in rows if r.status != "extracted"]}
 
-    return {"parse": parse, "classify": classify_stage, "extract": extract, "validate": validate}
+    async def forensics(org: uuid.UUID, doc: Document) -> dict[str, Any]:
+        # Independent of extraction: it only reads the extracted boxes to relate regions.
+        if not get_settings().forensics_enabled:
+            return {"status": "disabled"}
+        return await run_document_forensics(org, doc, store)
+
+    return {
+        "parse": parse,
+        "classify": classify_stage,
+        "extract": extract,
+        "validate": validate,
+        "forensics": forensics,
+    }
 
 
 # --- orchestration -------------------------------------------------------------------------
@@ -422,6 +435,8 @@ def _brief(metrics: dict[str, Any]) -> dict[str, Any]:
         "extracted",
         "uncertain",
         "method",
+        "anomalies",
+        "medium",
     )
     return {k: metrics[k] for k in keep if k in metrics}
 
