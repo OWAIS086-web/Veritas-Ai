@@ -10,6 +10,15 @@ import type {
   CasePage,
   CommentOut,
   CompareResponse,
+  ComparisonDetail,
+  ComparisonExportKind,
+  ComparisonExportOut,
+  ComparisonFindingOut,
+  ComparisonOut,
+  ComparisonReviewStatus,
+  ComparisonUploadOut,
+  ReviewEntryOut,
+  VlmStatusOut,
   DocumentOut,
   DocumentPage,
   EdgeEvidenceOut,
@@ -18,8 +27,14 @@ import type {
   GraphOut,
   RebuildOut,
   RelationshipOut,
+  DownloadOut,
+  EvidenceRequestOut,
   ExtractionOut,
+  ReportDetail,
+  ReportOut,
   ForensicRunOut,
+  InvestigationDetail,
+  InvestigationOut,
   ForensicSummaryOut,
   FindingDetail,
   FindingPage,
@@ -224,9 +239,65 @@ export const api = {
     request<RebuildOut>(`/cases/${caseId}/graph/rebuild`, { method: "POST" }),
   caseForensics: (caseId: string) => request<ForensicSummaryOut[]>(`/cases/${caseId}/forensics`),
   documentForensics: (id: string) => request<ForensicRunOut | null>(`/documents/${id}/forensics`),
+  startInvestigation: (caseId: string, objective: string) =>
+    request<InvestigationOut>(`/cases/${caseId}/investigate`, { method: "POST", body: { objective } }),
+  caseInvestigations: (caseId: string) => request<InvestigationOut[]>(`/cases/${caseId}/investigations`),
+  investigation: (id: string) => request<InvestigationDetail>(`/investigations/${id}`),
+  approveInvestigation: (id: string) =>
+    request<InvestigationOut>(`/investigations/${id}/approve`, { method: "POST" }),
+  requestEvidence: (id: string, documentTypes: string[], note: string) =>
+    request<EvidenceRequestOut>(`/investigations/${id}/request-evidence`, {
+      method: "POST",
+      body: { document_types: documentTypes, note },
+    }),
+  caseEvidenceRequests: (caseId: string) =>
+    request<EvidenceRequestOut[]>(`/cases/${caseId}/evidence-requests`),
+  createReport: (caseId: string, format: string, investigationId: string | null) =>
+    request<ReportOut>(`/cases/${caseId}/reports`, {
+      method: "POST",
+      body: investigationId ? { format, investigation_id: investigationId } : { format },
+    }),
+  caseReports: (caseId: string) => request<ReportOut[]>(`/cases/${caseId}/reports`),
+  report: (id: string) => request<ReportDetail>(`/reports/${id}`),
+  reportDownload: (id: string) => request<DownloadOut>(`/reports/${id}/download`),
+  assignFinding: (id: string, userId: string | null) =>
+    request<FindingDetail>(`/findings/${id}/assignee`, { method: "PATCH", body: { user_id: userId } }),
+  requestFindingEvidence: (id: string, documentTypes: string[], note: string) =>
+    request<EvidenceRequestOut>(`/findings/${id}/evidence-requests`, {
+      method: "POST",
+      body: { document_types: documentTypes, note },
+    }),
   entity: (id: string) => request<EntityOut>(`/entities/${id}`),
   entityRelationships: (id: string) => request<RelationshipOut[]>(`/entities/${id}/relationships`),
   relationshipEvidence: (id: string) => request<EdgeEvidenceOut[]>(`/relationships/${id}/evidence`),
   startPingJob: () => request<Job>("/system/ping-job", { method: "POST" }),
   job: (id: string) => request<Job>(`/jobs/${id}`),
+
+  caseComparisons: (caseId: string) => request<ComparisonOut[]>(`/cases/${caseId}/comparisons`),
+  createComparison: (caseId: string, originalId: string, testId: string) =>
+    request<ComparisonOut>(`/cases/${caseId}/comparisons`, {
+      method: "POST",
+      body: { original_document_id: originalId, test_document_id: testId },
+    }),
+  uploadComparison: (caseId: string, original: File, test: File) => {
+    const form = new FormData();
+    form.append("original", original, original.name);
+    form.append("test", test, test.name);
+    return request<ComparisonUploadOut>(`/cases/${caseId}/comparisons/upload`, { method: "POST", form });
+  },
+  comparison: (id: string) => request<ComparisonDetail>(`/comparisons/${id}`),
+  retryComparison: (id: string) =>
+    request<ComparisonOut>(`/comparisons/${id}/retry`, { method: "POST" }),
+  reviewComparisonFinding: (id: string, findingId: string, status: ComparisonReviewStatus, note: string) =>
+    request<ComparisonFindingOut>(`/comparisons/${id}/findings/${findingId}/review`, {
+      method: "PATCH",
+      body: { status, note: note.trim() || null },
+    }),
+  comparisonFindingReviews: (id: string, findingId: string) =>
+    request<ReviewEntryOut[]>(`/comparisons/${id}/findings/${findingId}/reviews`),
+  createComparisonExport: (id: string, kind: ComparisonExportKind) =>
+    request<ComparisonExportOut>(`/comparisons/${id}/exports`, { method: "POST", body: { kind } }),
+  comparisonExportDownload: (exportId: string) =>
+    request<DownloadOut>(`/comparison-exports/${exportId}/download`),
+  vlmStatus: () => request<VlmStatusOut>("/system/vlm-status"),
 };

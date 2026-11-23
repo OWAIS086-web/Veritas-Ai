@@ -16,10 +16,12 @@ from app.models import (
     Case,
     Document,
     EvidenceItem,
+    EvidenceRequest,
     Finding,
     FindingDecision,
     FindingStatus,
     InvestigatorComment,
+    OrganizationMember,
     User,
 )
 from app.schemas.common import Page, decode_cursor, encode_cursor
@@ -32,6 +34,7 @@ from app.schemas.findings import (
     FindingSummary,
     StatusChange,
 )
+from app.schemas.investigations import EvidenceRequestCreate, EvidenceRequestOut
 from app.services.audit import service as audit
 from app.services.identity.principal import Principal, RequestMeta
 
@@ -206,7 +209,98 @@ async def get(session: AsyncSession, org: uuid.UUID, finding_id: uuid.UUID) -> F
         evidence=items,
         decisions=decisions,
         comments=comments,
+        assignee_email=await session.scalar(
+            select(User.email).where(User.id == finding.assignee_user_id)
+        )
+        if finding.assignee_user_id
+        else None,
+        evidence_requests=[
+            EvidenceRequestOut.model_validate(r)
+            for r in await session.scalars(
+                select(EvidenceRequest)
+                .where(
+                    EvidenceRequest.organization_id == org,
+                    EvidenceRequest.finding_id == finding_id,
+                )
+                .order_by(EvidenceRequest.created_at)
+            )
+        ],
     )
+
+
+async def assign(
+    session: AsyncSession,
+    principal: Principal,
+    finding_id: uuid.UUID,
+    user_id: uuid.UUID | None,
+    meta: RequestMeta,
+) -> FindingDetail:
+    """Assign the finding to a member of the organization, or clear the assignment."""
+    org = principal.organization_id
+    finding, _ = await _get(session, org, finding_id)
+    if user_id is not None:
+        member = await session.scalar(
+            select(OrganizationMember.id).where(
+                OrganizationMember.organization_id == org, OrganizationMember.user_id == user_id
+            )
+        )
+        if member is None:
+            raise ValidationFailedError("The assignee must be a member of this organization.")
+    previous = finding.assignee_user_id
+    finding.assignee_user_id = user_id
+    await session.flush()
+    await audit.record(
+        session,
+        "finding.assign",
+        organization_id=org,
+        actor_user_id=principal.user_id,
+        resource_type="finding",
+        resource_id=finding_id,
+        meta=meta,
+        metadata={
+            "from": str(previous) if previous else None,
+            "to": str(user_id) if user_id else None,
+        },
+    )
+    return await get(session, org, finding_id)
+
+
+async def request_evidence(
+    session: AsyncSession,
+    principal: Principal,
+    finding_id: uuid.UUID,
+    body: EvidenceRequestCreate,
+    meta: RequestMeta,
+) -> EvidenceRequestOut:
+    """Record a request for more documents for this finding; it is shown on the case."""
+    org = principal.organization_id
+    finding, _ = await _get(session, org, finding_id)
+    types = sorted({t.strip()[:60] for t in body.document_types if t.strip()})
+    if not types:
+        raise ValidationFailedError("Name at least one document type.")
+    req = EvidenceRequest(
+        id=uuid.uuid4(),
+        organization_id=org,
+        case_id=finding.case_id,
+        finding_id=finding_id,
+        document_types=types,
+        note=body.note.strip(),
+        created_by=principal.user_id,
+    )
+    session.add(req)
+    await session.flush()
+    await session.refresh(req)
+    await audit.record(
+        session,
+        "finding.request_evidence",
+        organization_id=org,
+        actor_user_id=principal.user_id,
+        resource_type="finding",
+        resource_id=finding_id,
+        meta=meta,
+        metadata={"document_types": types},
+    )
+    return EvidenceRequestOut.model_validate(req)
 
 
 async def change_status(

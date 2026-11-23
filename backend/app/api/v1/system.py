@@ -49,7 +49,7 @@ async def list_audit_logs(
     limit: int = Query(50, ge=1, le=100),
     cursor: str | None = Query(None, max_length=20),
     principal: Principal = Depends(require_permission("audit:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> Page[AuditLogOut]:
     return await audit_service.list_for_org(session, principal.organization_id, limit, cursor)
 
@@ -62,7 +62,7 @@ async def list_audit_logs(
 )
 async def overview(
     principal: Principal = Depends(require_permission("stats:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> OverviewStats:
     return await stats_service.overview(session, principal.organization_id)
 
@@ -83,7 +83,7 @@ def _enqueue_ping(organization_id: uuid.UUID, job_id: uuid.UUID) -> None:
 async def ping_job(
     background: BackgroundTasks,
     principal: Principal = Depends(require_permission("system:ping")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> JobOut:
     job = await job_service.create_job(
         session, principal.organization_id, "system.ping", created_by=principal.user_id
@@ -99,7 +99,7 @@ async def ping_job(
 async def get_job(
     job_id: uuid.UUID,
     principal: Principal = Depends(require_permission("jobs:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> JobOut:
     return JobOut.model_validate(
         await job_service.get_job(session, principal.organization_id, job_id)
@@ -152,7 +152,7 @@ async def job_events(
     job_id: uuid.UUID,
     last_event_id: str | None = Header(default=None, alias="Last-Event-ID", max_length=12),
     principal: Principal = Depends(require_permission("jobs:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> StreamingResponse:
     await job_service.get_job(session, principal.organization_id, job_id)  # 404 across orgs
     after = int(last_event_id) if last_event_id and last_event_id.isdigit() else 0

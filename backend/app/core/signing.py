@@ -19,6 +19,14 @@ from dataclasses import dataclass
 from app.core.config import get_settings
 
 _ARTIFACT = re.compile(r"^(original|[a-z0-9][a-z0-9._-]{0,80})$")
+# Marks a token for a generated report file (served by /report-files only). The first id in
+# the token is then a report id, not a document id.
+REPORT_ARTIFACT = "report-file"
+# Marks a token for a comparison export (served by /comparison-files only); the first id is
+# then a comparison export id.
+COMPARISON_EXPORT_ARTIFACT = "comparison-export"
+# Artifacts that are never document files: /files refuses them.
+NON_DOCUMENT_ARTIFACTS = frozenset({REPORT_ARTIFACT, COMPARISON_EXPORT_ARTIFACT})
 
 
 class InvalidSignatureError(Exception):

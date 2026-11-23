@@ -4,6 +4,7 @@ import { type OverlayBox, toCssRect } from "@/features/viewer/overlay";
 
 const toneClass = {
   evidence: "border-evidence bg-evidence/10",
+  danger: "border-danger bg-danger/10",
   warning: "border-warning bg-warning/10",
   muted: "border-muted/40 bg-transparent",
 } as const;

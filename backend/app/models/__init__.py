@@ -2,6 +2,13 @@
 
 from app.models.audit import AuditLog
 from app.models.base import Base
+from app.models.doccompare import (
+    COMPARISON_LIMITATION,
+    ComparisonExport,
+    ComparisonFinding,
+    ComparisonReview,
+    DocumentComparison,
+)
 from app.models.documents import (
     Case,
     CaseStatus,
@@ -23,15 +30,35 @@ from app.models.findings import (
 from app.models.forensics import ForensicAnomaly, ForensicRun
 from app.models.graph import Entity, EntityMention, OutboxEvent, Relationship
 from app.models.identity import Organization, OrganizationMember, RefreshToken, Role, User
+from app.models.investigation import (
+    FINISHED_STATUSES,
+    AgentEvent,
+    AgentRun,
+    EvidenceRequest,
+    Investigation,
+    InvestigationCheckpoint,
+    InvestigationCheckpointWrite,
+    InvestigationStatus,
+)
 from app.models.job import TERMINAL_STATUSES, Job, JobEvent, JobStatus
+from app.models.reporting import REPORT_FORMATS, Report
 
 __all__ = [
+    "COMPARISON_LIMITATION",
+    "FINISHED_STATUSES",
+    "REPORT_FORMATS",
     "TERMINAL_STATUSES",
+    "AgentEvent",
+    "AgentRun",
     "AuditLog",
     "Base",
     "Case",
     "CaseStatus",
+    "ComparisonExport",
+    "ComparisonFinding",
+    "ComparisonReview",
     "Document",
+    "DocumentComparison",
     "DocumentPage",
     "DocumentStage",
     "DocumentStatus",
@@ -39,6 +66,7 @@ __all__ = [
     "Entity",
     "EntityMention",
     "EvidenceItem",
+    "EvidenceRequest",
     "ExtractedField",
     "ExtractionRun",
     "Finding",
@@ -46,6 +74,10 @@ __all__ = [
     "FindingStatus",
     "ForensicAnomaly",
     "ForensicRun",
+    "Investigation",
+    "InvestigationCheckpoint",
+    "InvestigationCheckpointWrite",
+    "InvestigationStatus",
     "InvestigatorComment",
     "Job",
     "JobEvent",
@@ -55,6 +87,7 @@ __all__ = [
     "OutboxEvent",
     "RefreshToken",
     "Relationship",
+    "Report",
     "Role",
     "User",
 ]

@@ -37,7 +37,7 @@ async def list_cases(
     priority: str | None = Query(None, pattern="^(low|medium|high|critical)$"),
     q: str | None = Query(None, max_length=100),
     principal: Principal = Depends(require_permission("cases:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> Page[CaseOut]:
     return await case_service.list_cases(
         session,
@@ -59,7 +59,7 @@ async def list_cases(
 async def create_case(
     body: CaseCreate,
     principal: Principal = Depends(require_permission("cases:write")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> CaseOut:
     return await case_service.create(session, principal, body, meta)
@@ -69,7 +69,7 @@ async def create_case(
 async def get_case(
     case_id: uuid.UUID,
     principal: Principal = Depends(require_permission("cases:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> CaseOut:
     return await case_service.get(session, principal.organization_id, case_id)
 
@@ -81,7 +81,7 @@ async def update_case(
     case_id: uuid.UUID,
     body: CaseUpdate,
     principal: Principal = Depends(require_permission("cases:write")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> CaseOut:
     return await case_service.update(session, principal, case_id, body, meta)
@@ -95,14 +95,14 @@ async def update_case(
 async def delete_case(
     case_id: uuid.UUID,
     principal: Principal = Depends(require_permission("cases:delete")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> Response:
     await case_service.soft_delete(session, principal, case_id, meta)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-async def _read_limited(upload: UploadFile, max_bytes: int) -> tuple[bytes, bool]:
+async def read_limited(upload: UploadFile, max_bytes: int) -> tuple[bytes, bool]:
     chunks: list[bytes] = []
     total = 0
     while chunk := await upload.read(READ_CHUNK):
@@ -126,13 +126,13 @@ async def upload_documents(
         ..., description="PDF, PNG, JPG, TIFF, DOCX, XLSX, CSV, EML or ZIP"
     ),
     principal: Principal = Depends(require_permission("documents:upload")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> UploadResponse:
     max_bytes = get_settings().max_upload_mb * 1024 * 1024
     incoming = []
     for upload in files[:100]:
-        data, too_large = await _read_limited(upload, max_bytes)
+        data, too_large = await read_limited(upload, max_bytes)
         incoming.append(ingestion.IncomingFile(upload.filename or "unnamed", data, too_large))
     results = await ingestion.upload(session, get_store(), principal, case_id, incoming, meta)
     accepted = [r.document_id for r in results if r.status == "accepted" and r.document_id]
@@ -152,7 +152,7 @@ async def upload_documents(
 async def list_case_documents(
     case_id: uuid.UUID,
     principal: Principal = Depends(require_permission("documents:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> list[DocumentOut]:
     return await document_service.list_for_case(session, principal.organization_id, case_id)
 
@@ -167,7 +167,7 @@ async def process_case(
     case_id: uuid.UUID,
     background: BackgroundTasks,
     principal: Principal = Depends(require_permission("documents:process")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> ProcessResponse:
     job, ids = await document_service.process_case(session, principal, case_id, meta)

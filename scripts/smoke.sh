@@ -94,6 +94,24 @@ done
 [ "$fcount" = "2" ] && [ "$fbad" = "0" ] && pass "document forensics (2 runs with limitations)" \
   || fail "document forensics" "documents=$fcount problems=$fbad"
 
+rid=$(curl -fsS -X POST "$API/cases/$CASE/reports" -H "$AUTH" -H 'Content-Type: application/json' \
+  -d '{"format":"pdf"}' | json "d['id']")
+rstatus=queued
+for _ in $(seq 1 120); do
+  sleep 1
+  rstatus=$(curl -fsS "$API/reports/$rid" -H "$AUTH" | json "d['status']")
+  [ "$rstatus" = "completed" ] || [ "$rstatus" = "failed" ] && break
+done
+if [ "$rstatus" = "completed" ]; then
+  rsha=$(curl -fsS "$API/reports/$rid" -H "$AUTH" | json "d['sha256']")
+  rurl=$(curl -fsS "$API/reports/$rid/download" -H "$AUTH" | json "d['url']")
+  got=$(curl -fsS "$BASE$rurl" | python3 -c "import hashlib,sys; print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())")
+  [ "$got" = "$rsha" ] && pass "report (generated, verified, signed download matches SHA-256)" \
+    || fail "report" "downloaded hash differs"
+else
+  fail "report" "status=$rstatus"
+fi
+
 actions=$(curl -fsS "$API/audit-logs" -H "$AUTH" | json "' '.join(i['action'] for i in d['items'])")
 case "$actions" in *auth.register*auth.login*|*auth.login*auth.register*) pass "audit log recorded the session";;
   *) fail "audit log" "$actions";; esac

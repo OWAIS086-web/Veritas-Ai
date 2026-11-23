@@ -82,6 +82,37 @@ Neo4j holds a derived copy. Nodes are labelled `:VeritasNode:Document|Entity|Fin
 
 Forensic results are kept apart from extraction. They don't reference findings, and findings don't reference them.
 
+## Tables (migration 0006)
+| Table | `veritas_app` grants | Notes |
+|---|---|---|
+| investigations | SELECT, INSERT, UPDATE | One per run on a case: `objective`, `status`, `budget` (limits), `usage`, `result` (each agent's validated output, and the report draft), `error`, `event_seq` (the last assigned event number, incremented under a row update), `created_by`, `approved_by`, `approved_at` |
+| agent_runs | SELECT, INSERT, UPDATE | One per agent step: `agent`, `status`, `input_refs`, `output`, `output_summary`, `model`, `provider`, `prompt_version`, `tool_calls`, `tokens` (provider-reported, or null), `duration_ms`, `error` |
+| agent_events | SELECT, INSERT (append-only) | Unique `(investigation_id, seq)`. The SSE stream and the AI Agents screen read only these rows. |
+| evidence_requests | SELECT, INSERT | `document_types text[]`, `note`, `status`, the investigation it came from |
+| investigation_checkpoints | SELECT, INSERT, DELETE | LangGraph checkpoints, serialized by LangGraph and keyed by `(investigation_id, checkpoint_ns, checkpoint_id)` |
+| investigation_checkpoint_writes | SELECT, INSERT, UPDATE, DELETE | LangGraph pending writes. UPDATE is used only for its special channels (errors, interrupts). |
+
+All six tables have `organization_id` and the tenant RLS policy. The checkpoints are under RLS too, which is why the LangGraph Postgres package wasn't used: its tables have no tenant column.
+
+## Tables and columns (migration 0007)
+| Change | `veritas_app` grants | Notes |
+|---|---|---|
+| reports (new) | SELECT, INSERT, UPDATE | `case_id`, `investigation_id` (null, or an approved investigation), `format` (`CHECK IN ('pdf','docx','json','xlsx')`), `status` (`queued`, `running`, `completed` or `failed`), `storage_key`, `sha256`, `size_bytes`, `model_json` (the verified report content), `error`, `created_by`, `finished_at`. `CHECK (status <> 'completed' OR (storage_key IS NOT NULL AND sha256 IS NOT NULL))`. RLS enabled. |
+| findings.assignee_user_id | (findings grants unchanged) | Nullable FK to `users` (`ON DELETE SET NULL`). The service checks the assignee is a member of the organization. |
+| evidence_requests.finding_id | (unchanged) | Nullable FK to `findings` (`ON DELETE SET NULL`). Set when a reviewer requests documents from a finding. |
+
+Report files live in object storage under `{organization_id}/{report_id}/derived/report-{random}.{ext}`. They are written once per attempt and re-hashed on every download.
+
+## Tables (migration 0008, Document Comparison Lab)
+| Table | `veritas_app` grants | Notes |
+|---|---|---|
+| document_comparisons | SELECT, INSERT, UPDATE | `case_id`, `original_document_id`, `test_document_id` (`CHECK original <> test`), `status`, `stage`, `progress`, `settings` (the thresholds used), `summary` (hashes, page alignment, counts, vision-model stats), `vlm_status`, `vlm_model`, `error`, `created_by`, `started_at`, `finished_at` |
+| comparison_findings | SELECT, INSERT, UPDATE, DELETE | `number`, `type`, `sources` (text[]), `test_page`, `region`, `original_page`, `original_region`, `original_text`, `test_text`, `severity` (`CHECK IN ('info','low','medium')`), `evidence_confidence` (`CHECK 0..1`), `explanation`, `metrics`, `vlm_assessment`, `review_status` (`CHECK` of the four statuses), `reviewed_by`, `reviewed_at`. DELETE is granted only so a re-run replaces a comparison's own findings. |
+| comparison_reviews | SELECT, INSERT | Append-only decisions: `finding_id`, `actor_user_id`, `from_status`, `to_status`, `note` |
+| comparison_exports | SELECT, INSERT, UPDATE | `kind` (`CHECK` of the four kinds), `status`, `storage_key`, `sha256`, `size_bytes`, `error`, `created_by`, `finished_at`. `CHECK (status <> 'completed' OR (storage_key IS NOT NULL AND sha256 IS NOT NULL))` |
+
+All four have `organization_id`, an index on it, RLS and the tenant policy. Export files are derived artifacts under `{organization_id}/{comparison_id}/derived/{kind}-{random}.{ext}`, written once per attempt and re-hashed on every download.
+
 Original files are not stored in Postgres. They live in object storage under `<organization_id>/…` and are never modified.
 
 ## Testing

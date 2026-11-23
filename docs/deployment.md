@@ -69,8 +69,37 @@ The override removes the published Postgres and Redis ports, sets `VERITAS_ENV=p
 - Measured on the Docker stack (2026-11-23, CPU worker), from `document_stages` timestamps: 38 digital PDFs took 163 ms on average and 230 ms at most. One scanned PDF over 1 MB took 1.7 s.
 - To regenerate the fixtures: `uv run python scripts/generate_forensics_samples.py`, from `backend/`. The output is deterministic, and the hashes are recorded in `manifest.json`.
 - The smoke test checks that both shipment documents get a forensic run with the mandatory limitation.
+
+## Autonomous investigation (Phase 6)
+- No new service. The Celery task `investigations.run` runs the LangGraph workflow in the existing worker. LangGraph (`langgraph>=1.2,<1.3`) was added to the backend dependencies.
+- Migration 0006 adds the investigation tables, including LangGraph's checkpoints.
+- The agents call the configured model provider (`VERITAS_LLM_*`). Without one, the planner fails and the investigation is marked `failed` with that reason. Nothing is invented in its place.
+- Budgets come from `VERITAS_INVESTIGATION_*`: max iterations 24, max tool calls 80, timeout 900 s, max tokens 120,000, and 3,000 page characters per prompt. The Celery time limit is the timeout plus 120 s.
+- Measured with local Ollama `qwen2.5:7b-instruct` on 2026-11-23, for the invoice and customs declaration pair (5 findings), over 6 runs: 4 through the live pytest and 2 in the browser on the Docker stack. Reaching review took 24.4–46 s, with 7–10 iterations, 27–33 tool calls and 14,986–22,539 provider-reported tokens. The report step wasn't timed separately.
+- The live browser test needs the model: `VERITAS_E2E_LIVE_MODEL=1 npx playwright test tests/e2e/agents.spec.ts`.
+
+## Reports and the evidence explorer (Phase 7)
+- No new service and no new environment variable. The Celery task `reports.generate` runs in the existing worker. Report files go to the existing object store under the organization's prefix, and downloads use the same 60 s signed links (`VERITAS_SIGNED_URL_SECONDS`).
+- PDF output uses PyMuPDF, which is already installed, so ReportLab and its system packages aren't needed. DOCX and XLSX use python-docx and openpyxl, both already dependencies.
+- Migration 0007 adds `reports`, `findings.assignee_user_id` and `evidence_requests.finding_id`.
+- The smoke test now generates a PDF report and checks that the signed download matches its recorded SHA-256.
+- The demo case's PDF report was 169 KB on the stack.
+- **Test load:** run the quality gate and the Playwright suite while the machine is otherwise idle. A Docker image build running at the same time made unrelated frontend tests time out. Right after a backend restart, the first registrations of four parallel Playwright workers can also take more than 5 s. Both cases are recorded in the progress document.
 - To check an outage on the running stack: `pwsh -File scripts/graph-outage-check.ps1`. It stops and starts the `neo4j` container.
 - Data volumes now include `veritas_graphdata`.
+
+## Document Comparison Lab (original versus test)
+- No new service and no new dependency. The Celery tasks `doccompare.run` (time limit 30 min, waits up to 30 min for both documents to be processed, retrying every 10 s) and `doccompare.export` run in the existing worker. Migration 0008 adds the four tables.
+- Settings (`.env`, passed through by Compose; see `.env.example`):
+  - `VERITAS_COMPARISON_DPI` (144), `VERITAS_COMPARISON_MAX_PAGES` (20), `VERITAS_COMPARISON_WORK_WIDTH` (1000), `VERITAS_COMPARISON_SSIM_THRESHOLD` (0.6)
+  - `VERITAS_COMPARISON_VLM_ENABLED` (true), `VERITAS_COMPARISON_VLM_MAX_REGIONS` (8), `VERITAS_COMPARISON_VLM_MAX_PAGES` (3)
+- **Vision model (Qwen2.5-VL 7B through Ollama):**
+  1. `ollama pull qwen2.5vl:7b` (about 6 GB; runs on CPU, faster with a GPU).
+  2. In `.env`: `VERITAS_LLM_BASE_URL=http://host.docker.internal:11434/v1` and `VERITAS_VLM_MODEL=qwen2.5vl:7b`, with `VERITAS_LLM_TIMEOUT_SECONDS=180` for the first, cold call. For containers on Linux the same value works through `extra_hosts`. Leave `VERITAS_LLM_API_KEY` empty.
+  3. `docker compose up -d backend celery-worker`, then open Forensics Lab → Comparison Lab: the badge shows "Vision model ready", or check `GET /api/v1/system/vlm-status`.
+  4. Any OpenAI-compatible server (vLLM, LM Studio, a hosted API) works with the same two variables; the model name is never hardcoded. Without a reachable model, comparisons complete with text and pixel evidence and `vlm_status` says why.
+- Measured on this machine (2026-11-23, Ollama on the host, CPU worker): a vision call took 2–11 s once the model was loaded (the first call after loading took about 20 s). Comparing the two-page altered invoice took 25.6 s for the vision step (4 calls, 9,750 tokens) on top of about 18 s of rasterizing, alignment and comparison. The rotated scan took 36 s without the model, most of it PaddleOCR.
+- Sample files: `sample-data/comparison` (regenerate with `uv run python scripts/generate_comparison_samples.py` from `backend/`).
 
 ## Local model provider (Ollama)
 - Set `VERITAS_LLM_BASE_URL=http://host.docker.internal:11434/v1` and `VERITAS_LLM_MODEL=qwen2.5:7b-instruct` in `.env`, then run `docker compose up -d backend celery-worker`. The worker has `extra_hosts: host.docker.internal:host-gateway`, so the same value works on Linux.

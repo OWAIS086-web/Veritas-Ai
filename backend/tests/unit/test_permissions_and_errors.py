@@ -25,6 +25,7 @@ WRITE_PERMISSIONS = {
     "findings:comment",
     "graph:rebuild",
     "system:ping",
+    "comparisons:run",
 }
 
 

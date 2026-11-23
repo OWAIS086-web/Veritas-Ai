@@ -1,12 +1,12 @@
 # How VERITAS AI uses Kiro
 
-This document is part of the Kiroween 2026 submission. It explains how Kiro's features shaped the build, and it is updated at the end of each phase. Nothing here describes work that has not been done. The current record covers Phases 0–5.
+This document is part of the Kiroween 2026 submission. It explains how Kiro's features shaped the build, and it is updated at the end of each phase. Nothing here describes work that has not been done. The current record covers Phases 0–6.
 
 ## Surfaces used
 - **Kiro IDE** (Autopilot mode) for the whole build: specs, steering, hooks, custom agents and implementation.
 
 ## 1. Spec-driven development
-Twelve feature specs live in `.kiro/specs/`. Each has `requirements.md` (user stories and EARS acceptance criteria such as *"WHEN … THE SYSTEM SHALL …"*), `design.md` (components, data model, APIs, failure handling, tests) and `tasks.md` (dependency-ordered tasks with measurable done conditions and requirement ids).
+Thirteen feature specs live in `.kiro/specs/`. Each has `requirements.md` (user stories and EARS acceptance criteria such as *"WHEN … THE SYSTEM SHALL …"*), `design.md` (components, data model, APIs, failure handling, tests) and `tasks.md` (dependency-ordered tasks with measurable done conditions and requirement ids).
 
 | Spec | Phase |
 |---|---|
@@ -17,6 +17,7 @@ Twelve feature specs live in `.kiro/specs/`. Each has `requirements.md` (user st
 | document-forensics | 5 |
 | autonomous-investigation | 6 |
 | evidence-explorer, reporting | 7 |
+| document-comparison (Document Comparison Lab: original versus test) | after 7, delivered as one implementation |
 | enterprise-security, observability-testing | 9 (cross-cutting) |
 
 **How we used them:**
@@ -204,3 +205,39 @@ Recorded from the Phase 5 (document forensics) session on 2026-11-23:
   - no path from anomalies to findings, which the module dependency matrix in the `structure` steering also forbids.
 - **The security-review hook checked the new permission.** The hook fired when `core/permissions.py` was saved. The review covered three points: `forensics:read` is granted to every role through the read set, both endpoints use `require_permission`, and both filter on `organization_id` with cross-org 404. That gave the RBAC matrix rows and the two-organization isolation test.
 - **Spec-driven versus vibe:** the spec placed the forensics stage in parallel with extraction. Building the font check showed it needs the extracted boxes, so the stage runs after `validate`. That was recorded in the design instead of being silently changed.
+
+Recorded from the Phase 6 (autonomous investigation) session on 2026-11-23:
+
+- **The `ai-engineering` steering shaped the code, not only the prompts.** Its agent rules map directly onto code:
+  - allowlists, Pydantic outputs, budgets and bounded retries;
+  - the reference validator;
+  - `agent_events` for every step;
+  - a human-review interrupt.
+
+  Each became a component with its own test. The rule that document content can't select tools became two checks: the gateway refuses writing tools a model requests, and the injection test gives the workflow a model that obeys an injected instruction.
+- **The `tech` steering ("adding anything else needs a one-line justification") stopped a second database driver.** `langgraph-checkpoint-postgres` would have brought psycopg, and its tables have no `organization_id`, so they would sit outside RLS. The checkpointer was written on the existing SQLAlchemy and asyncpg stack instead, and its tables are under the same tenant policy as everything else. The justification is in `design.md` and `checkpointer.py`.
+- **The hooks.**
+  - The security-review hook fired on `core/permissions.py`. Its review found a missing `organization_id` filter on the one writing tool.
+  - The test-suggestion hook fired on each new service and API module. Its lists of public functions and tests became the 10 integration tests and the property suite. That covered the two-organization 404 check on all 7 endpoints and RLS on all 6 tables, which the `testing` steering requires.
+- **Live runs found what scripted tests couldn't, and the spec rules kept the fixes honest.**
+  - The live browser test found that commits ran after responses across the whole API. The fix came with a regression test, as the `testing` steering requires, rather than a retry loop in the UI.
+  - The live model exposed three prompt weaknesses. Each fix was re-measured, and the before and after numbers are recorded in `docs/ai-pipeline.md`.
+  - The live browser test asserts that every step finished, not that every step succeeded, so a model failure is shown rather than hidden.
+- **Spec-driven versus vibe:** the spec numbered the migration 0007 and asked for `langgraph-checkpoint-postgres`. Both were corrected in `design.md`, and the two places where the build differs from the requirements text are listed under "Deviations".
+
+Recorded from the Phase 7 (evidence explorer and reporting) session on 2026-11-24:
+
+- **Steering caught a module-boundary breach, and it was resolved in the open.** The `structure` steering's dependency table didn't let reporting read extraction or forensics, yet reporting requirement 1.1 requires both sections. The table was changed, with the reason, in the steering and in `docs/architecture.md`. The code wasn't quietly made to break the table.
+- **The hooks.** The security-review hook fired on `core/permissions.py` and `core/signing.py`. The review led to a dedicated `report-file` token type that the document endpoint refuses, so a report link can't open a document or the other way round. The test-suggestion hook's per-module test lists became `test_report_render.py`, `test_reports.py` and `test_review_actions.py`.
+- **The spec's failure-handling line fixed a real bug.** The explorer design said "an expired signed URL fetches a new one and retries once". The new Playwright test then found that viewers stuck on "HTTP 403". That was the same error seen in a browser on `/forensics`. The fix implements that line exactly and comes with a regression test.
+- **Reusing Phase 6 parts.** The report citation verifier calls the agents' reference validator, so reports and agent outputs are checked by the same code.
+- **The `testing` steering's no-weakening rule** shaped how a flaky test was handled. The AI Agents review test was split, and the longer half got an explicit time limit with its reason in a comment. Its assertions are unchanged. Load-related failures were rerun on an idle machine and recorded as such, rather than retried until green.
+
+Recorded from the Document Comparison Lab session on 2026-11-23/24:
+
+- **The test-suggestion hook ran on every new module.** It fired on `engine`, `annotate`, `report`, `service`, `run` and the API router, and listed each module's public functions and the tests they needed. Those lists became `tests/unit/test_doccompare.py` (17), `tests/property/test_doccompare_properties.py` (7) and `tests/integration/test_doccompare.py` (11, including cross-org 404s on all 11 id paths and RLS on the four new tables).
+- **The security-review hook reviewed the signing and permission changes.** Saving `core/signing.py` and `core/permissions.py` triggered the checklist. The review confirmed that a comparison-export token is refused on `/files` and `/report-files` and the reverse; an integration test now checks all four combinations plus an expired link.
+- **Property tests found two real defects.** Hypothesis showed that `clip` could round a box edge 0.005 pt past the page (rounding now goes inward), and that PyMuPDF widens rectangle annotations by about their border width, so a region at the page edge produced an annotation partly off the page (the region is now inset at the edges).
+- **Steering held the product rule under pressure.** The request was for "authenticity" analysis. The `product` steering's rule (never declare a document authentic or forged) kept every explanation to "the test document reads X where the original reads Y", capped severity at medium in the database, and made the vision model unable to create a finding on its own. A property test checks the wording for every type and source.
+- **Live runs changed the design.** Probing the real `qwen2.5vl:7b` before writing the vision code showed it reads changed values correctly but returns boxes outside the image. That observation became requirement 5.3–5.4 (pixel verification, box validation) before any code was written.
+- **The Playwright suite found a pre-existing Phase 7 defect.** With the new spec added, six end-to-end tests timed out. The cause was a report PDF whose table was wider than the page: PyMuPDF's layout looped and held the only worker slot for 570 s. The fix (`app/integrations/pdf/story.py`: soft breaks in long hashes and a progress guard) is covered by a regression test built from that report's real content.

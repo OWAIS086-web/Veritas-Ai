@@ -35,8 +35,8 @@ class OpenAICompatProvider:
         self._transport = transport
 
     async def _call(
-        self, client: httpx.AsyncClient, model: str, messages: list[dict[str, str]]
-    ) -> dict[str, Any]:
+        self, client: httpx.AsyncClient, model: str, messages: list[dict[str, Any]]
+    ) -> tuple[dict[str, Any], dict[str, int] | None]:
         resp = await client.post(
             self._url,
             headers=self._headers,
@@ -48,13 +48,14 @@ class OpenAICompatProvider:
             },
         )
         resp.raise_for_status()
-        content = resp.json()["choices"][0]["message"]["content"]
+        body = resp.json()
+        content = body["choices"][0]["message"]["content"]
         parsed = json.loads(content)
         if not isinstance(parsed, dict):
             raise ValueError("model answer is not a JSON object")
-        return parsed
+        return parsed, _usage(body.get("usage"))
 
-    async def complete_json(self, messages: list[dict[str, str]]) -> Completion:
+    async def complete_json(self, messages: list[dict[str, Any]]) -> Completion:
         attempts = 0
         errors: list[str] = []
         async with httpx.AsyncClient(timeout=self._timeout, transport=self._transport) as client:
@@ -62,8 +63,8 @@ class OpenAICompatProvider:
                 for retry in range(MAX_RETRIES + 1):
                     attempts += 1
                     try:
-                        content = await self._call(client, model, messages)
-                        return Completion(content, model, self.name, attempts)
+                        content, usage = await self._call(client, model, messages)
+                        return Completion(content, model, self.name, attempts, usage)
                     except (httpx.HTTPError, ValueError, KeyError, IndexError) as exc:
                         errors.append(f"{model}: {type(exc).__name__}")
                         logger.warning(
@@ -79,8 +80,63 @@ class OpenAICompatProvider:
         raise ProviderError("all models failed: " + "; ".join(errors[-6:]))
 
 
+def _usage(raw: Any) -> dict[str, int] | None:
+    """The provider's own token counts, if it sent them as integers."""
+    if not isinstance(raw, dict):
+        return None
+    out = {
+        k: raw[k]
+        for k in ("prompt_tokens", "completion_tokens")
+        if isinstance(raw.get(k), int) and raw[k] >= 0
+    }
+    return out if len(out) == 2 else None
+
+
 def configured_provider() -> OpenAICompatProvider | None:
     s = get_settings()
     if not s.llm_configured:
         return None
     return OpenAICompatProvider(s.llm_base_url, s.llm_api_key, s.llm_models, s.llm_timeout_seconds)
+
+
+def configured_vision_provider() -> OpenAICompatProvider | None:
+    """The vision model (VERITAS_VLM_MODEL, e.g. qwen2.5vl:7b) on the same OpenAI-compatible
+    endpoint, or None when it isn't configured. No fallback to the text model: a text-only
+    model can't read the images."""
+    s = get_settings()
+    if not s.llm_base_url or not s.vlm_model:
+        return None
+    return OpenAICompatProvider(s.llm_base_url, s.llm_api_key, [s.vlm_model], s.llm_timeout_seconds)
+
+
+async def vision_status() -> dict[str, Any]:
+    """Diagnostic: is the vision model configured, is the endpoint reachable, is the model
+    listed there? Never sends document content."""
+    s = get_settings()
+    out: dict[str, Any] = {
+        "configured": bool(s.llm_base_url and s.vlm_model),
+        "model": s.vlm_model or None,
+        "endpoint_host": httpx.URL(s.llm_base_url).host if s.llm_base_url else None,
+        "reachable": False,
+        "model_available": False,
+        "error": None,
+    }
+    if not out["configured"]:
+        out["error"] = "Set VERITAS_LLM_BASE_URL and VERITAS_VLM_MODEL (for example qwen2.5vl:7b)."
+        return out
+    headers = {"Authorization": f"Bearer {s.llm_api_key}"} if s.llm_api_key else {}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(s.llm_base_url.rstrip("/") + "/models", headers=headers)
+            resp.raise_for_status()
+            ids = [m.get("id") for m in resp.json().get("data", []) if isinstance(m, dict)]
+    except (httpx.HTTPError, ValueError) as exc:
+        out["error"] = f"endpoint not reachable ({type(exc).__name__})"
+        return out
+    out["reachable"] = True
+    out["model_available"] = s.vlm_model in ids
+    if not out["model_available"]:
+        out["error"] = (
+            f"{s.vlm_model} is not listed by the endpoint; pull it (ollama pull {s.vlm_model})."
+        )
+    return out

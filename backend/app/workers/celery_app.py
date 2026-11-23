@@ -19,6 +19,9 @@ celery_app = Celery(
         "app.workers.document_tasks",
         "app.workers.comparison_tasks",
         "app.workers.graph_tasks",
+        "app.workers.investigation_tasks",
+        "app.workers.report_tasks",
+        "app.workers.doccompare_tasks",
     ],
 )
 # Run by the beat embedded in the worker (`celery worker -B`).

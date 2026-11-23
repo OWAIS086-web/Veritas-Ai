@@ -30,7 +30,7 @@ router = APIRouter(prefix="/organizations", tags=["organizations"], responses=PR
 )
 async def list_organizations(
     principal: Principal = Depends(get_principal),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> list[MyOrganizationOut]:
     return await org_service.list_mine(session, principal.user_id)
 
@@ -44,7 +44,7 @@ async def list_organizations(
 async def create_organization(
     body: OrganizationCreate,
     principal: Principal = Depends(get_principal),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> OrganizationOut:
     return await org_service.create(session, principal, body.name, meta)
@@ -58,7 +58,7 @@ async def create_organization(
 async def get_organization(
     organization_id: uuid.UUID,
     principal: Principal = Depends(require_permission("org:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> OrganizationOut:
     return await org_service.get(session, principal, organization_id)
 
@@ -72,7 +72,7 @@ async def update_organization(
     organization_id: uuid.UUID,
     body: OrganizationUpdate,
     principal: Principal = Depends(require_permission("org:update")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> OrganizationOut:
     return await org_service.update(session, principal, organization_id, body, meta)
@@ -86,7 +86,7 @@ async def update_organization(
 async def list_members(
     organization_id: uuid.UUID,
     principal: Principal = Depends(require_permission("members:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> list[MemberOut]:
     return await member_service.list_members(session, principal, organization_id)
 
@@ -102,7 +102,7 @@ async def add_member(
     organization_id: uuid.UUID,
     body: MemberAdd,
     principal: Principal = Depends(require_permission("members:manage")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> MemberOut:
     return await member_service.add_member(
@@ -121,7 +121,7 @@ async def change_member_role(
     user_id: uuid.UUID,
     body: MemberRoleUpdate,
     principal: Principal = Depends(require_permission("members:manage")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> MemberOut:
     return await member_service.change_role(
@@ -139,7 +139,7 @@ async def remove_member(
     organization_id: uuid.UUID,
     user_id: uuid.UUID,
     principal: Principal = Depends(require_permission("members:manage")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> Response:
     await member_service.remove_member(session, principal, organization_id, user_id, meta)

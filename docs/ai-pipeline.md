@@ -105,3 +105,71 @@ Limits:
 - The thresholds were calibrated on synthetic documents only. Real scans, re-saved PDFs and signing tools produce incremental updates and producer changes for legitimate reasons.
 - Stamps are compared only within one case.
 - Signatures are located but never compared or judged.
+
+# Document Comparison Lab (original versus test)
+
+An investigator compares a test document with an original. Every difference is located on both documents and scored; none is called forgery or authenticity. The design is in `.kiro/specs/document-comparison/design.md`.
+
+| Step | Method | Thresholds |
+|---|---|---|
+| Rasters | PyMuPDF at 144 dpi; image files at their own resolution | up to 20 pages |
+| Alignment | identity, ECC euclidean (half size, then full), ORB + RANSAC homography; the highest SSIM wins (a more complex transform must beat a simpler one by 0.002) | 1000 px work width |
+| Text | The stored text-layer or OCR lines; original tokens mapped onto the test page; each token joins the test line it overlaps most (≥ 50% of the smaller height); tokens joined by single spaces so layout separators never count | digits must match; text-layer text must match; OCR letter text ≥ 0.85 similar |
+| Pixels | local SSIM < 0.6 and gray difference > 40 inside the warped original; 9×9 closing; regions ≥ 30 changed px, off the 2% border, mean SSIM of their changed pixels ≤ 0.45 | |
+| Vision (Qwen2.5-VL) | Region check on the 8 strongest candidates (both crops, JSON schema); page scan of the first 3 pages; images sized to multiples of 28 px | ±0.10 confidence; proposals need ≥ 30 changed px and ≥ 1% of the box |
+
+## Measured on `sample-data/comparison` (SYNTHETIC DEMONSTRATION DATA, 2026-11-23)
+| Test document | Expected | Found | Notes |
+|---|---|---|---|
+| `test_altered.pdf` (total, date and IBAN changed) | 3 | 3 | total and IBAN: text + pixels (0.80); date "3"→"8": text only (0.60), its glyph change stays under the pixel thresholds |
+| `test_resaved.pdf` (same content, other producer and dates) | 0 | 0 | page SSIM 1.0 |
+| `test_scanned_altered.png` (page 1 printed and scanned: 1.2° rotation, 14/−9 px shift, noise) | total, date, missing page 2 | exactly those 3 | ECC alignment, page SSIM 0.983; both boxes fall inside the ground-truth boxes; OCR text compared |
+
+Before the line-assignment fix, each test line took the original tokens inside a fixed window, and on the scan two lines took their neighbours' text (two false "changed" findings). Before the region fix, SSIM was averaged over the whole bounding box (0.51 for the changed total) instead of over the changed pixels (0.18), and the change was missed. Both cases are now unit tests.
+
+## Live vision model (local Ollama `qwen2.5vl:7b`, 2026-11-23)
+- Altered invoice: 4 calls, 25.6 s, 9,750 provider-reported tokens. All 3 region checks saw the difference and read the same values as the text comparison ("48,000.00" → "68,000.00", "5407" → "9907", "3" → "8").
+- Its boxes were not usable: region-check boxes lay outside the sent crop (for example `[205, 308, 974, 658]` for a crop a few hundred pixels wide), and page-scan boxes were 30–40 px below the changed text, so pixel verification rejected both proposals. This is why the model can only adjust confidence and why every region comes from text boxes or changed pixels.
+- On the scan: 3 calls, 15.5 s, 7,387 tokens, the same agreement, 2 boxes rejected and 2 proposals without pixel evidence.
+- Replayed in `tests/fixtures/llm/doccompare_vision_altered.json` (recorded from this run); the live check is `tests/live/test_live_doccompare.py`.
+
+# Autonomous investigation (Phase 6)
+
+A LangGraph workflow of eight agents runs in the worker: Planner → Document Intelligence → Forensics → Cross-Reference → Entity Resolution → Evidence Graph → Risk Assessment → human review → Report Generation. The design is in `.kiro/specs/autonomous-investigation/design.md`.
+
+The safety rules hold in code, not only in prompts:
+- **Facts come from tools.** Each agent first reads its facts through the tool gateway, which allows only that agent's allowlisted read-only tools and scopes every read to the case. The model is shown those facts as JSON.
+- **Page text is fenced as data.** Page text goes only into `<document_data>` blocks in the user message. The system message states that such text is data and never instructions.
+- **The model can't act directly.** It answers with JSON validated by a Pydantic model, with at most two retries. It can ask for more allowlisted reads, at most 3 per round, and each round costs an iteration. It can't call tools on its own. Writing tools can't be requested, and an unknown or unlisted tool is refused and recorded.
+- **Citations are checked.** Every cited id is checked against the same organization and case. Invalid ones are removed (`reference_rejected`). A statement left without citations is marked `supported: false`.
+- **Agents don't change findings.** There is no tool for it. The Risk agent's judgements sit next to the finding's persisted anomaly score, evidence confidence and priority, which are copied unchanged. Alternative explanations are marked as hypotheses. No agent outputs a probability of fraud.
+- **The report waits for approval.** It is drafted only after a reviewer approves. A number or id in its executive summary that isn't in the structured content causes the summary to be replaced.
+
+## Live run (2026-11-23, local Ollama `qwen2.5:7b-instruct`)
+The case was the invoice (USD 48,000) and the customs declaration (USD 68,000). Comparison gave 5 findings: one financial discrepancy and four missing documents.
+
+| Run | Path | Outcome | Iterations | Tool calls | Tokens | Seconds to review |
+|---|---|---|---|---|---|---|
+| 1 | live pytest | awaiting_review | 7 | 27 | 17,050 | 34.5 |
+| 2 | live pytest (after the planner example change) | awaiting_review | 7 | 27 | 17,584 | 27.6 |
+| 3 | live pytest | awaiting_review | 7 | 27 | 14,986 | 24.4 |
+| 4 | browser on the stack | awaiting_review; Risk failed (3 invalid outputs) | 7 | 27 | 19,752 | 28 |
+| 5 | live pytest (after the tool-request shape fix) | awaiting_review | 10 | 32 | 21,488 | 32.2 |
+| 6 | browser on the stack, then approved | completed | 10 | 33 | 22,539 | 46 |
+
+What the safety layer caught on real model output:
+- **Run 1:** 2 citations were removed (`reference_rejected`).
+- **Runs 1–3:** each had 2 invalid model outputs (`output_invalid`), and the retry was valid. Run 3's diagnostics show both came from the planner answering with tool requests as bare strings. The source wasn't printed for runs 1 and 2.
+- **Run 4:** the Risk agent repeated string tool requests such as `"get_finding_evidence(<id>)"` three times, so the step failed. The failure was recorded and the run still paused for review, with the failure shown on screen.
+
+Prompt changes made in response, measured by the next runs:
+- **The planner's example `focus` was a sentence the model copied word for word** (runs 1 and 4). It is now a placeholder, and later runs wrote their own focus.
+- **The prompt now shows the object shape of a tool request.** Afterwards the model made valid extra requests: 10 iterations instead of 7, and no Risk failure.
+- **The Risk prompt now asks for one assessment per finding.** Before, the model assessed only the evidence-backed discrepancy and skipped the four `missing_document` findings, which were listed as `assessed: false`. Run 6 assessed 5 of 5.
+
+The model's main assessment held: evidence strength moderate to strong, review urgency high, and an alternative explanation that the customs value may be CIF while the invoice is FOB, marked as a hypothesis.
+
+Limits:
+- These are 6 runs of one 7B model on one synthetic case. Wording and coverage vary between runs.
+- The guarantees are the structural checks above, not the quality of the model's prose.
+- Signatures are not judged, and no agent sees images. The vision model path is still not built.

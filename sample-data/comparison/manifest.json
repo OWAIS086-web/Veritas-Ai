@@ -1,0 +1,92 @@
+{
+  "label": "SYNTHETIC DEMONSTRATION DATA",
+  "files": {
+    "original_invoice.pdf": {
+      "sha256": "535f744fc71289cdaf4be23bb707d651fd6419aa3773a0654dafcd10e10a0b89",
+      "size": 6480
+    },
+    "test_altered.pdf": {
+      "sha256": "dad1fd9a016167c34fc7f5c40ee82c90e9b0434d38cccd7f3d73df5f26da16e9",
+      "size": 6493
+    },
+    "test_resaved.pdf": {
+      "sha256": "9b54b4e12c09d7d2dbc66f4748b2098b53543ab676d9564ec9a11ea2fb810256",
+      "size": 6489
+    },
+    "test_scanned_altered.png": {
+      "sha256": "2b5410cc50052105e24b11b573d19b052c319268757f2bd5919833430af20128",
+      "size": 2993568
+    }
+  },
+  "original": "original_invoice.pdf",
+  "changes": {
+    "total": {
+      "original": "USD 48,000.00",
+      "test": "USD 68,000.00",
+      "page": 1,
+      "box": [
+        200.0,
+        239.2,
+        268.4,
+        253.0
+      ]
+    },
+    "date": {
+      "original": "3 October 2026",
+      "test": "8 October 2026",
+      "page": 1,
+      "box": [
+        200.0,
+        119.2,
+        268.9,
+        133.0
+      ]
+    },
+    "account": {
+      "original": "DE44 5001 0517 5407 3249 31",
+      "test": "DE44 5001 0517 9907 3249 31",
+      "page": 2,
+      "box": [
+        200.0,
+        129.2,
+        339.0,
+        143.0
+      ]
+    }
+  },
+  "expected": {
+    "test_altered.pdf": [
+      "total",
+      "date",
+      "account"
+    ],
+    "test_resaved.pdf": [],
+    "test_scanned_altered.png": [
+      "total",
+      "date",
+      "page_removed:2"
+    ]
+  },
+  "scan": {
+    "dpi": 150,
+    "angle_degrees": 1.2,
+    "shift_px": [
+      14,
+      -9
+    ],
+    "boxes_px": {
+      "total": [
+        422.8,
+        490.7,
+        565.8,
+        522.4
+      ],
+      "date": [
+        417.5,
+        240.7,
+        561.6,
+        272.5
+      ]
+    }
+  }
+}

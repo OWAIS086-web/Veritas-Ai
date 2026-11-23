@@ -31,11 +31,12 @@ test("register, see live overview, run a real worker job, audit, settings, sign 
   await expect(page.getByRole("list", { name: "Job events" }).getByRole("listitem")).toHaveCount(3);
   await expect(page.getByLabel("Jobs processed: 1")).toBeVisible();
 
-  // Built sections show real empty states; pending sections are explicit.
+  // Built sections show real empty states with a real next action.
   await page.getByRole("link", { name: "Findings" }).click();
   await expect(page.getByText("No findings yet")).toBeVisible();
   await page.getByRole("link", { name: "Reports" }).click();
-  await expect(page.getByText("Available in a later phase")).toBeVisible();
+  await expect(page.getByText("No investigations yet")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create an investigation" })).toBeVisible();
 
   // Settings: rename the organization; the change is audited.
   await page.getByRole("link", { name: "Settings" }).click();

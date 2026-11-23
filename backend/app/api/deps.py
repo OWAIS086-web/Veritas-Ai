@@ -35,7 +35,7 @@ async def db_session() -> AsyncIterator[AsyncSession]:
 
 async def get_principal(
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> Principal:
     """Validate the access token, bind the transaction to its organization (RLS),
     and re-check the membership and role from the database on every request."""

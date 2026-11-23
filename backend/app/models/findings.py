@@ -57,6 +57,10 @@ class Finding(UUIDPk, CreatedAt, Base):
     priority: Mapped[str] = mapped_column(String(20))  # low | medium | high
     evidence_status: Mapped[str] = mapped_column(String(20))  # supported | absence
     status: Mapped[str] = mapped_column(String(30), default=FindingStatus.NEW)
+    # The investigator responsible for reviewing it (a member of the organization).
+    assignee_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
     requires_human_review: Mapped[bool] = mapped_column(Boolean, default=True)
     recommended_action: Mapped[str] = mapped_column(Text)
     coverage: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)

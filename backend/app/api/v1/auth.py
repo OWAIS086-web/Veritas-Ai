@@ -24,7 +24,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 )
 async def register(
     body: RegisterRequest,
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> TokenPair:
     return await auth_service.register(session, body, meta)
@@ -38,7 +38,7 @@ async def register(
 )
 async def login(
     body: LoginRequest,
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> TokenPair:
     return await auth_service.login(session, get_redis(), body, meta)
@@ -52,7 +52,7 @@ async def login(
 )
 async def refresh(
     body: RefreshRequest,
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> TokenPair:
     return await auth_service.refresh(session, body.refresh_token, meta)
@@ -65,7 +65,7 @@ async def refresh(
 )
 async def logout(
     body: RefreshRequest,
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> Response:
     await auth_service.logout(session, body.refresh_token, meta)
@@ -80,6 +80,6 @@ async def logout(
 )
 async def me(
     principal: Principal = Depends(get_principal),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> MeResponse:
     return await auth_service.me(session, principal)

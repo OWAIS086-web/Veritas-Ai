@@ -51,9 +51,25 @@ export type RebuildOut = S["RebuildOut"];
 export type ForensicSummaryOut = S["ForensicSummaryOut"];
 export type ForensicRunOut = S["ForensicRunOut"];
 export type ForensicAnomalyOut = S["ForensicAnomalyOut"];
+export type InvestigationOut = S["InvestigationOut"];
+export type InvestigationDetail = S["InvestigationDetail"];
+export type AgentRunOut = S["AgentRunOut"];
+export type EvidenceRequestOut = S["EvidenceRequestOut"];
+export type ReportOut = S["ReportOut"];
+export type ReportDetail = S["ReportDetail"];
+export type DownloadOut = S["DownloadOut"];
 export type EntityOut = S["EntityOut"];
 export type RelationshipOut = S["RelationshipOut"];
 export type EdgeEvidenceOut = S["EdgeEvidenceOut"];
+export type ComparisonOut = S["ComparisonOut"];
+export type ComparisonDetail = S["ComparisonDetail"];
+export type ComparisonFindingOut = S["ComparisonFindingOut"];
+export type ComparisonExportOut = S["ComparisonExportOut"];
+export type ComparisonUploadOut = S["ComparisonUploadOut"];
+export type ComparisonReviewStatus = S["ReviewIn"]["status"];
+export type ComparisonExportKind = S["ExportCreate"]["kind"];
+export type ReviewEntryOut = S["ReviewEntryOut"];
+export type VlmStatusOut = S["VlmStatusOut"];
 
 export const ROLE_LABELS: Record<Role, string> = {
   org_admin: "Organization Admin",

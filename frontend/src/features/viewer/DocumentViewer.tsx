@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, ScanText, Search, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, Microscope, ScanText, Search, ZoomIn, ZoomOut } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 
 import { ErrorState } from "@/components/QueryState";
@@ -10,6 +10,7 @@ import { FieldsPanel } from "@/features/viewer/FieldsPanel";
 import { ImageCanvas } from "@/features/viewer/ImageCanvas";
 import { ParsedView } from "@/features/viewer/ParsedView";
 import { fieldLabel } from "@/features/documents/labels";
+import { anomalyLabel } from "@/features/forensics/labels";
 import { useWidth } from "@/hooks/useWidth";
 import { api } from "@/services/api";
 import type { DocumentOut, FieldOut } from "@/types/api";
@@ -31,6 +32,7 @@ export function DocumentViewer({ doc, initialFieldId }: { doc: DocumentOut; init
   const [zoomIndex, setZoomIndex] = useState(2);
   const [query, setQuery] = useState("");
   const [showLines, setShowLines] = useState(false);
+  const [showForensics, setShowForensics] = useState(false);
   const [selected, setSelected] = useState<FieldOut | null>(null);
   const { ref, width } = useWidth<HTMLDivElement>();
   const isPdf = doc.mime_type === "application/pdf";
@@ -40,6 +42,11 @@ export function DocumentViewer({ doc, initialFieldId }: { doc: DocumentOut; init
 
   const pages = useQuery({ queryKey: ["pages", doc.id], queryFn: () => api.documentPages(doc.id), enabled: completed });
   const extraction = useQuery({ queryKey: ["extraction", doc.id], queryFn: () => api.documentExtraction(doc.id), enabled: completed });
+  const forensics = useQuery({
+    queryKey: ["document-forensics", doc.id],
+    queryFn: () => api.documentForensics(doc.id),
+    enabled: completed && showForensics,
+  });
   // Signed links expire after 60 s; fetch a fresh one per page view.
   const preview = useQuery({
     queryKey: ["preview", doc.id, isTiff ? page : 0],
@@ -78,8 +85,17 @@ export function DocumentViewer({ doc, initialFieldId }: { doc: DocumentOut; init
                    tone: "evidence", active: selected?.id === f.id });
       }
     }
+    if (showForensics) {
+      for (const a of forensics.data?.anomalies ?? []) {
+        if (a.region && a.page_number === page) {
+          out.push({ id: `fa-${a.id}`, bbox: a.region, label: `Forensic observation (${a.severity}): ${anomalyLabel(a.type)}`,
+                     tone: "warning" });
+        }
+      }
+    }
     return out;
-  }, [currentPage, extraction.data, page, query, selected, showLines]);
+  }, [currentPage, extraction.data, forensics.data, page, query, selected, showLines, showForensics]);
+  const forensicCount = (forensics.data?.anomalies ?? []).length;
 
   const onSelectBox = (id: string) => {
     const f = extraction.data?.fields.find((x) => x.id === id);
@@ -117,6 +133,12 @@ export function DocumentViewer({ doc, initialFieldId }: { doc: DocumentOut; init
               {currentPage?.method === "ocr" ? "OCR lines" : "Text lines"}
             </Button>
           ) : null}
+          {positioned && completed ? (
+            <Button variant={showForensics ? "secondary" : "ghost"} size="sm" aria-pressed={showForensics}
+                    icon={<Microscope className="h-4 w-4" />} onClick={() => setShowForensics((v) => !v)}>
+              Forensic overlays{showForensics && forensics.data ? ` (${forensicCount})` : ""}
+            </Button>
+          ) : null}
         </div>
         <div ref={ref} className="max-h-[78vh] overflow-auto bg-bg/40 p-4">
           {!completed ? (
@@ -131,11 +153,11 @@ export function DocumentViewer({ doc, initialFieldId }: { doc: DocumentOut; init
             <Skeleton className="h-[70vh]" />
           ) : isPdf ? (
             <Suspense fallback={<Skeleton className="h-[70vh]" />}>
-              <PdfCanvas url={preview.data.url} page={page} zoom={zoom} width={width - 32}
+              <PdfCanvas onExpired={() => void preview.refetch()} url={preview.data.url} page={page} zoom={zoom} width={width - 32}
                          boxes={boxes} onPageCount={setPageCount} onSelect={onSelectBox} />
             </Suspense>
           ) : (
-            <ImageCanvas url={preview.data.url} alt={`${doc.original_filename}, page ${page}`}
+            <ImageCanvas onExpired={() => void preview.refetch()} url={preview.data.url} alt={`${doc.original_filename}, page ${page}`}
                          zoom={zoom} width={width - 32} boxes={boxes} onSelect={onSelectBox} />
           )}
         </div>

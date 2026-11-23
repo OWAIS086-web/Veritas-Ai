@@ -80,7 +80,8 @@ export function Select({ label, hideLabel, id, className, children, ...rest }: S
   );
 }
 
-type Tone = "neutral" | "primary" | "evidence" | "warning" | "danger";
+export type BadgeTone = "neutral" | "primary" | "evidence" | "warning" | "danger";
+type Tone = BadgeTone;
 const tones: Record<Tone, string> = {
   neutral: "border-line text-muted",
   primary: "border-primary/30 bg-primary/10 text-primary",

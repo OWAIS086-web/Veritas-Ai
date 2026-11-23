@@ -122,6 +122,24 @@ Check "document forensics (worker forensics stage -> runs with limitations)" {
     }
     "($(@($summary | ForEach-Object { $_.anomalies } | Measure-Object -Sum).Sum) anomalies across $($summary.Count) unaltered documents)"
 }
+Check "report (worker builds, verifies, stores; signed download matches its SHA-256)" {
+    $req = Invoke-RestMethod "$api/cases/$($script:smokeCase)/reports" -Method Post -Headers $headers `
+        -ContentType "application/json" -Body (@{ format = "pdf" } | ConvertTo-Json)
+    for ($i = 0; $i -lt 120; $i++) {
+        Start-Sleep -Seconds 1
+        $rep = Invoke-RestMethod "$api/reports/$($req.id)" -Headers $headers
+        if ($rep.status -in @("completed", "failed")) { break }
+    }
+    if ($rep.status -ne "completed") { throw "report status=$($rep.status) error=$($rep.error)" }
+    $link = Invoke-RestMethod "$api/reports/$($req.id)/download" -Headers $headers
+    $file = Join-Path ([IO.Path]::GetTempPath()) "veritas-smoke-report.pdf"
+    Invoke-WebRequest "$BaseUrl$($link.url)" -OutFile $file -UseBasicParsing | Out-Null
+    $hash = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
+    Remove-Item -LiteralPath $file
+    if ($hash -ne $rep.sha256) { throw "downloaded file hash differs from the recorded SHA-256" }
+    $cites = @($rep.model.evidence_references).Count
+    "($cites evidence references, $([math]::Round($rep.size_bytes / 1024)) KB, $([int]$i) s)"
+}
 Check "audit log recorded the session" {
     $logs = Invoke-RestMethod "$api/audit-logs" -Headers $headers
     $actions = $logs.items.action

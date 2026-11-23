@@ -6,28 +6,59 @@ import { PageHeader } from "@/components/PageHeader";
 import { EmptyState, ErrorState } from "@/components/QueryState";
 import { Badge, Card, Select, Skeleton } from "@/components/ui/primitives";
 import { docTypeLabel } from "@/features/documents/labels";
+import { ComparisonLab } from "@/features/forensics/comparison/ComparisonLab";
 import { ForensicDocument } from "@/features/forensics/ForensicDocument";
 import { anomalyLabel, RUN_STATUS } from "@/features/forensics/labels";
 import { api } from "@/services/api";
+import { usePermission } from "@/stores/auth";
+
+const TABS = [
+  { id: "documents", label: "Document forensics" },
+  { id: "compare", label: "Comparison Lab" },
+] as const;
+type Tab = (typeof TABS)[number]["id"];
+
+function Tabs({ tab, onTab }: { tab: Tab; onTab: (tab: Tab) => void }) {
+  return (
+    <div role="tablist" aria-label="Forensics Lab sections" className="mb-4 flex gap-1 border-b border-line">
+      {TABS.map((t) => (
+        <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-selected={tab === t.id}
+                aria-controls={`panel-${t.id}`} onClick={() => onTab(t.id)}
+                className={clsx("-mb-px border-b-2 px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-evidence",
+                                tab === t.id ? "border-evidence text-ink" : "border-transparent text-muted hover:text-ink")}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function ForensicsPage() {
   const [params, setParams] = useSearchParams();
   const cases = useQuery({ queryKey: ["cases", "forensics-picker"], queryFn: () => api.cases({}) });
+  const canCompare = usePermission("comparisons:read");
   const items = cases.data?.items ?? [];
   const caseId = params.get("case") ?? items[0]?.id ?? "";
+  const tab: Tab = params.get("tab") === "compare" && canCompare ? "compare" : "documents";
+  // Every change keeps the case and the tab; each tab keeps its own selection.
+  const go = (next: Record<string, string>) =>
+    setParams({ case: caseId, ...(tab === "compare" ? { tab } : {}), ...next });
 
   return (
     <div>
       <PageHeader
         title="Forensics Lab"
-        subtitle="PDF structure, compression, version and stamp observations for review. An anomaly is not a conclusion about the document."
+        subtitle="PDF structure, compression, version and stamp observations, and original-versus-test comparisons, for review. An anomaly or a difference is not a conclusion about the document."
         actions={items.length > 0 ? (
           <Select label="Investigation" hideLabel value={caseId} className="w-80"
-                  onChange={(e) => setParams({ case: e.target.value })}>
+                  onChange={(e) => setParams({ case: e.target.value, ...(tab === "compare" ? { tab } : {}) })}>
             {items.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
           </Select>
         ) : null}
       />
+      {canCompare ? (
+        <Tabs tab={tab} onTab={(t) => setParams({ ...(caseId ? { case: caseId } : {}), ...(t === "compare" ? { tab: t } : {}) })} />
+      ) : null}
       {cases.isPending ? <Skeleton className="h-[60vh]" /> : cases.isError ? (
         <Card><ErrorState error={cases.error} onRetry={() => void cases.refetch()} /></Card>
       ) : !caseId ? (
@@ -37,9 +68,17 @@ export function ForensicsPage() {
             Upload documents to an investigation; each processed PDF or image is analysed here.
           </EmptyState>
         </Card>
+      ) : tab === "compare" ? (
+        <div role="tabpanel" id="panel-compare" aria-labelledby="tab-compare">
+          <ComparisonLab key={caseId} caseId={caseId} comparisonId={params.get("cmp")}
+                         onSelect={(cmp) => go({ cmp })} />
+        </div>
       ) : (
-        <CaseForensics key={caseId} caseId={caseId} documentId={params.get("doc")}
-                       onSelect={(doc) => setParams({ case: caseId, doc })} />
+        <div role={canCompare ? "tabpanel" : undefined} id="panel-documents"
+             aria-labelledby={canCompare ? "tab-documents" : undefined}>
+          <CaseForensics key={caseId} caseId={caseId} documentId={params.get("doc")}
+                         onSelect={(doc) => go({ doc })} />
+        </div>
       )}
     </div>
   );

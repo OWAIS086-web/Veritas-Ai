@@ -15,7 +15,7 @@ import {
 } from "@/features/findings/labels";
 import { PriorityBadge } from "@/features/investigations/InvestigationsPage";
 import { api, ApiError } from "@/services/api";
-import { usePermission } from "@/stores/auth";
+import { useAuth, usePermission } from "@/stores/auth";
 import { toast } from "@/stores/toast";
 import type { EvidenceOut, FindingDetail, FindingStatus } from "@/types/api";
 
@@ -70,6 +70,7 @@ export function FindingDetailPage() {
         </div>
         <div className="space-y-6">
           <ReviewPanel finding={f} />
+          <AssignmentPanel finding={f} />
           <HistoryPanel finding={f} />
         </div>
       </div>
@@ -101,7 +102,13 @@ function EvidenceTable({ finding }: { finding: FindingDetail }) {
   }
   return (
     <Card className="overflow-x-auto p-0">
-      <div className="p-5 pb-0"><CardTitle>Evidence ({(finding.evidence ?? []).length})</CardTitle></div>
+      <div className="p-5 pb-0">
+        <CardTitle action={
+          <Link to={`/evidence?finding=${finding.id}`} className="text-xs text-evidence hover:underline">
+            Compare the documents side by side
+          </Link>
+        }>Evidence ({(finding.evidence ?? []).length})</CardTitle>
+      </div>
       <table className="w-full min-w-[640px] text-left text-sm" aria-label="Evidence items">
         <thead className="border-b border-line text-xs uppercase tracking-wider text-muted">
           <tr>
@@ -250,6 +257,79 @@ function HistoryPanel({ finding }: { finding: FindingDetail }) {
           ))}
         </ol>
       )}
+    </Card>
+  );
+}
+
+/** Investigator assignment and requests for more documents (evidence-explorer 2.4). */
+function AssignmentPanel({ finding }: { finding: FindingDetail }) {
+  const qc = useQueryClient();
+  const canAssign = usePermission("findings:assign");
+  const canRequest = usePermission("findings:comment");
+  const orgId = useAuth((s) => s.me?.organization.id ?? "");
+  const [types, setTypes] = useState("");
+  const [note, setNote] = useState("");
+  const members = useQuery({ queryKey: ["members", orgId], queryFn: () => api.members(orgId), enabled: canAssign && !!orgId });
+  const refresh = (data: FindingDetail) => {
+    qc.setQueryData(["finding", finding.id], data);
+    void qc.invalidateQueries({ queryKey: ["findings"] });
+  };
+  const assign = useMutation({
+    mutationFn: (userId: string | null) => api.assignFinding(finding.id, userId),
+    onSuccess: (data) => {
+      refresh(data);
+      toast.success(data.assignee_email ? `Assigned to ${data.assignee_email}` : "Assignment cleared");
+    },
+    onError: (err) => toast.error("Assignment failed", err instanceof ApiError ? err.detail : undefined),
+  });
+  const request = useMutation({
+    mutationFn: () => api.requestFindingEvidence(finding.id, types.split(",").map((t) => t.trim()).filter(Boolean), note),
+    onSuccess: () => {
+      toast.success("Evidence request recorded");
+      setTypes("");
+      setNote("");
+      void qc.invalidateQueries({ queryKey: ["finding", finding.id] });
+    },
+    onError: (err) => toast.error("Request failed", err instanceof ApiError ? err.detail : undefined),
+  });
+  const requests = finding.evidence_requests ?? [];
+
+  return (
+    <Card>
+      <CardTitle>Assignment and evidence</CardTitle>
+      <p className="text-sm">
+        Assigned to: <span className="font-medium">{finding.assignee_email ?? (finding.assignee_user_id ? "a former member" : "nobody")}</span>
+      </p>
+      {canAssign ? (
+        <Select label="Assign to" value={finding.assignee_user_id ?? ""} disabled={assign.isPending || members.isPending}
+                onChange={(e) => assign.mutate(e.target.value || null)}>
+          <option value="">Nobody</option>
+          {(members.data ?? []).map((m) => <option key={m.user_id} value={m.user_id}>{m.email}</option>)}
+        </Select>
+      ) : null}
+      {canRequest ? (
+        <form className="mt-4 space-y-2 border-t border-line pt-4" onSubmit={(e) => { e.preventDefault(); request.mutate(); }}>
+          <label className="block text-xs font-medium text-muted">
+            Request documents (types, comma-separated)
+            <input value={types} onChange={(e) => setTypes(e.target.value)} placeholder="freight_invoice"
+                   className="mt-1 h-9 w-full rounded-lg border border-line bg-bg/60 px-3 text-sm text-ink" />
+          </label>
+          <label className="block text-xs font-medium text-muted">
+            Why they are needed
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000}
+                      className="mt-1 w-full rounded-lg border border-line bg-bg/60 px-3 py-2 text-sm text-ink" />
+          </label>
+          <Button type="submit" size="sm" variant="secondary" loading={request.isPending}
+                  disabled={!types.trim() || note.trim().length < 3}>Request documents</Button>
+        </form>
+      ) : null}
+      {requests.length > 0 ? (
+        <ul className="mt-3 space-y-1 text-xs" aria-label="Evidence requests">
+          {requests.map((r) => (
+            <li key={r.id}><span className="font-medium">{r.document_types.join(", ")}</span>: {r.note}</li>
+          ))}
+        </ul>
+      ) : null}
     </Card>
   );
 }

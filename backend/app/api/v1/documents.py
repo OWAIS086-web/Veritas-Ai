@@ -5,14 +5,14 @@ from __future__ import annotations
 import re
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Path, Query, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Path, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import db_session, request_meta, require_permission
 from app.core.db import tenant_session
 from app.core.errors import NotFoundError, PermissionDeniedError
-from app.core.signing import InvalidSignatureError, verify
+from app.core.signing import NON_DOCUMENT_ARTIFACTS, InvalidSignatureError, verify
 from app.integrations.storage.base import ObjectNotFoundError, derived_key
 from app.integrations.storage.s3_store import get_store
 from app.models import Case, Document
@@ -26,6 +26,7 @@ from app.workers.dispatch import enqueue_processing
 
 router = APIRouter(tags=["documents"], responses=PROBLEM_RESPONSES)
 _SAFE_NAME = re.compile(r"[^A-Za-z0-9._ -]")
+VIEWER_HEADER = "X-Veritas-Viewer"
 
 
 @router.get(
@@ -42,7 +43,7 @@ async def list_documents(
     doc_type: str | None = Query(None, max_length=60),
     q: str | None = Query(None, max_length=100),
     principal: Principal = Depends(require_permission("documents:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> Page[DocumentOut]:
     return await document_service.list_all(
         session,
@@ -61,7 +62,7 @@ async def list_documents(
 async def get_document(
     document_id: uuid.UUID,
     principal: Principal = Depends(require_permission("documents:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> DocumentOut:
     return await document_service.get(session, principal.organization_id, document_id)
 
@@ -74,7 +75,7 @@ async def get_document(
 async def get_pages(
     document_id: uuid.UUID,
     principal: Principal = Depends(require_permission("documents:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> list[PageOut]:
     return await document_service.pages(session, principal.organization_id, document_id)
 
@@ -87,7 +88,7 @@ async def get_pages(
 async def get_extractions(
     document_id: uuid.UUID,
     principal: Principal = Depends(require_permission("documents:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> ExtractionOut | None:
     return await document_service.extractions(session, principal.organization_id, document_id)
 
@@ -101,7 +102,7 @@ async def get_preview(
     document_id: uuid.UUID,
     page: int | None = Query(None, ge=1, le=5000, description="Page image (TIFF only)"),
     principal: Principal = Depends(require_permission("documents:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> PreviewOut:
     return await document_service.preview(session, principal, document_id, meta, page)
@@ -117,7 +118,7 @@ async def retry_document(
     document_id: uuid.UUID,
     background: BackgroundTasks,
     principal: Principal = Depends(require_permission("documents:process")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> JobOut:
     job = await document_service.retry(session, principal, document_id, meta)
@@ -136,11 +137,15 @@ async def retry_document(
 async def get_file(
     token: str = Path(max_length=400),
     meta: RequestMeta = Depends(request_meta),
+    viewer: str | None = Header(None, alias=VIEWER_HEADER, max_length=8),
 ) -> Response:
     try:
         grant = verify(token)
     except InvalidSignatureError as exc:
         raise PermissionDeniedError("This file link is invalid or has expired.") from exc
+    if grant.artifact in NON_DOCUMENT_ARTIFACTS:
+        # Report and comparison-export links only work on their own endpoints.
+        raise PermissionDeniedError("This file link is invalid or has expired.")
     async with tenant_session(grant.organization_id) as session:
         doc = await session.scalar(
             select(Document)
@@ -172,11 +177,15 @@ async def get_file(
     except ObjectNotFoundError as exc:
         raise NotFoundError("File not found.") from exc
     safe = _SAFE_NAME.sub("_", name)[:150] or "document"
+    # The in-app viewer reads the bytes itself. It gets an anonymous binary response (no type,
+    # no filename), so download managers that capture "files" by type or extension leave it
+    # alone. A direct download keeps the real type and filename.
+    as_viewer = viewer == "1"
     return Response(
         content=data,
-        media_type=mime,
+        media_type="application/octet-stream" if as_viewer else mime,
         headers={
-            "Content-Disposition": f'inline; filename="{safe}"',
+            "Content-Disposition": "inline" if as_viewer else f'inline; filename="{safe}"',
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "private, no-store",
             # The original is untrusted content: if opened directly it gets no script privileges.

@@ -1,21 +1,21 @@
 # Tasks: Autonomous Investigation
 
-- [ ] 1. Migration 0007 and models
+- [x] 1. Migration 0006 and models
   - _Requirements: 1.1, 6.1_
-- [ ] 2. Tool registry, gateway, allowlists and the reference validator
+- [x] 2. Tool registry, gateway, allowlists and the reference validator
   - Done when: an unlisted tool call is rejected and an invented reference is removed and recorded.
   - _Requirements: 2.2, 4.1, 4.3_
-- [ ] 3. Budget enforcement
+- [x] 3. Budget enforcement
   - Done when: the never-terminating replay stops with `budget_exhausted`.
   - _Requirements: 3.1–3.2_
-- [ ] 4. Agents 1–7 with Pydantic outputs and the replay fixtures
+- [x] 4. Agents 1–7 with Pydantic outputs and the replay fixtures
   - _Requirements: 2.1, 2.3, 5.1, 5.2_
-- [ ] 5. LangGraph assembly, checkpointing and the human-review interrupt
+- [x] 5. LangGraph assembly, checkpointing and the human-review interrupt
   - Done when: a run pauses at `awaiting_review`, approval resumes it, and a worker restart resumes it.
   - _Requirements: 1.2, 5.3_
-- [ ] 6. Prompt-injection test suite
+- [x] 6. Prompt-injection test suite
   - _Requirements: 4.2_
-- [ ] 7. API (investigate, get, events, approve, request-evidence)
+- [x] 7. API (investigate, get, events, approve, request-evidence)
   - _Requirements: 1.1, 1.3, 5.3, 5.4_
-- [ ] 8. AI Agents screen
+- [x] 8. AI Agents screen
   - _Requirements: 6.2_

@@ -252,4 +252,20 @@ def no_broker(monkeypatch: pytest.MonkeyPatch) -> list[tuple[uuid.UUID, uuid.UUI
     monkeypatch.setattr(documents_api, "enqueue_processing", lambda o, j: sent.append((o, j)))
     monkeypatch.setattr(findings_api, "enqueue_comparison", lambda o, j: sent.append((o, j)))
     monkeypatch.setattr(graph_api, "enqueue_graph_sync", lambda: None)
+    import app.api.v1.investigations as investigations_api
+    import app.api.v1.reports as reports_api
+
+    monkeypatch.setattr(
+        investigations_api, "enqueue_investigation", lambda o, i: sent.append((o, i))
+    )
+    monkeypatch.setattr(reports_api, "enqueue_report", lambda o, r: sent.append((o, r)))
+    import app.api.v1.doccompare as doccompare_api
+
+    monkeypatch.setattr(doccompare_api, "enqueue_processing", lambda o, j: sent.append((o, j)))
+    monkeypatch.setattr(
+        doccompare_api, "enqueue_document_comparison", lambda o, c: sent.append((o, c))
+    )
+    monkeypatch.setattr(
+        doccompare_api, "enqueue_comparison_export", lambda o, e: sent.append((o, e))
+    )
     return sent

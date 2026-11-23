@@ -44,7 +44,7 @@ async def case_graph(
     ),
     q: str | None = Query(None, max_length=100, description="Label search; keeps neighbours"),
     principal: Principal = Depends(require_permission("graph:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     reader: GraphReader | None = Depends(graph_reader),
 ) -> GraphOut:
     selected = set(types.split(",")) if types else None
@@ -63,7 +63,7 @@ async def rebuild(
     case_id: uuid.UUID,
     background: BackgroundTasks,
     principal: Principal = Depends(require_permission("graph:rebuild")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> RebuildOut:
     await get_case(session, principal.organization_id, case_id)
@@ -86,7 +86,7 @@ async def rebuild(
 async def get_entity(
     entity_id: uuid.UUID,
     principal: Principal = Depends(require_permission("graph:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> EntityOut:
     return await queries.entity(session, principal.organization_id, entity_id)
 
@@ -99,7 +99,7 @@ async def get_entity(
 async def entity_relationships(
     entity_id: uuid.UUID,
     principal: Principal = Depends(require_permission("graph:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> list[RelationshipOut]:
     return await queries.entity_relationships(session, principal.organization_id, entity_id)
 
@@ -112,6 +112,6 @@ async def entity_relationships(
 async def relationship_evidence(
     relationship_id: uuid.UUID,
     principal: Principal = Depends(require_permission("graph:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> list[EdgeEvidenceOut]:
     return await queries.relationship_evidence(session, principal.organization_id, relationship_id)

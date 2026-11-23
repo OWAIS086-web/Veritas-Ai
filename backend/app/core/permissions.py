@@ -44,6 +44,13 @@ ALL_PERMISSIONS: frozenset[str] = frozenset(
         "graph:read",
         "graph:rebuild",
         "forensics:read",
+        "investigations:read",
+        "investigations:run",
+        "reports:read",
+        "reports:create",
+        "findings:assign",
+        "comparisons:read",
+        "comparisons:run",
     }
 )
 
@@ -58,6 +65,9 @@ _READ = frozenset(
         "findings:read",
         "graph:read",
         "forensics:read",
+        "investigations:read",
+        "reports:read",
+        "comparisons:read",
     }
 )
 _WORK = frozenset(
@@ -68,6 +78,9 @@ _WORK = frozenset(
         "findings:run",
         "findings:comment",
         "graph:rebuild",
+        "investigations:run",
+        "reports:create",
+        "comparisons:run",
     }
 )
 
@@ -75,7 +88,7 @@ ROLE_PERMISSIONS: dict[Role, frozenset[str]] = {
     Role.ORG_ADMIN: ALL_PERMISSIONS,
     Role.INVESTIGATION_MANAGER: _READ
     | _WORK
-    | {"audit:read", "system:ping", "cases:delete", "findings:review"},
+    | {"audit:read", "system:ping", "cases:delete", "findings:review", "findings:assign"},
     Role.INVESTIGATOR: _READ | _WORK,
     Role.REVIEWER: _READ | {"findings:review", "findings:comment"},
     Role.READ_ONLY_ANALYST: _READ,

@@ -10,6 +10,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 from app.schemas.common import ApiModel
+from app.schemas.investigations import EvidenceRequestOut
 
 FindingStatusValue = Literal[
     "new", "under_review", "confirmed_observation", "needs_more_evidence", "dismissed", "resolved"
@@ -38,6 +39,7 @@ class FindingSummary(ApiModel):
     status: FindingStatusValue
     evidence_status: Literal["supported", "absence"]
     evidence_count: int = 0
+    assignee_user_id: uuid.UUID | None = None
     requires_human_review: bool
     active: bool = Field(description="False when the latest comparison no longer detects it.")
     detected_by: str
@@ -92,6 +94,12 @@ class FindingDetail(FindingSummary):
     evidence: list[EvidenceOut] = Field(default_factory=list)
     decisions: list[DecisionOut] = Field(default_factory=list)
     comments: list[CommentOut] = Field(default_factory=list)
+    assignee_email: str | None = None
+    evidence_requests: list[EvidenceRequestOut] = Field(default_factory=list)
+
+
+class AssigneeChange(BaseModel):
+    user_id: uuid.UUID | None = Field(description="A member of the organization, or null to clear")
 
 
 class StatusChange(BaseModel):

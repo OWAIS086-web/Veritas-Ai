@@ -101,6 +101,62 @@ Every edge carries non-empty `evidence_ids`. `CONTRADICTS` edges also carry `fin
 
 The processing job's stages are now `parse, classify, extract, validate, forensics`. The `forensics` stage's `stage_completed` event summary is `{status, analysis_types, anomalies, medium, compared_with_version, stamps_compared}`.
 
+## Endpoints (Phase 6)
+| Method | Path | Permission | Notes |
+|---|---|---|---|
+| POST | /cases/{id}/investigate | investigations:run | `{objective}` (3–1000 chars). Returns 202 with the investigation (`queued`) and runs it in the worker. 409 if the case already has one in progress. Audited as `investigation.start`. |
+| GET | /cases/{id}/investigations | investigations:read | The case's investigations, newest first |
+| GET | /cases/{id}/evidence-requests | investigations:read | Evidence requested for the case, newest first |
+| GET | /investigations/{id} | investigations:read | `status`, `budget` (limits), `usage` (iterations, tool calls, provider-reported tokens, `unmetered_calls`, elapsed seconds), `error`, `result.agents` (each agent's validated output), `result.report_draft` (after approval), `agent_runs` and `evidence_requests` |
+| GET | /investigations/{id}/events | investigations:read | SSE of the persisted `agent_events` (`id` is the event `seq`; send `Last-Event-ID` to resume). Ends with `event: end` when the run pauses for review or finishes. |
+| POST | /investigations/{id}/approve | findings:review | 202. Only from `awaiting_review` (otherwise 409). The worker then runs the report step. Audited as `investigation.approve`. |
+| POST | /investigations/{id}/request-evidence | findings:comment | `{document_types, note}` returns 201. Blank types are dropped, and 409 if none is left. Audited as `investigation.request_evidence`. |
+
+- Statuses: `queued`, `running`, `awaiting_review`, `approved`, `completed`, `failed` and `budget_exhausted`.
+- Event types: `queued`, `investigation_started`, `agent_started`, `tool_called`, `tool_failed`, `tool_rejected`, `reference_rejected`, `output_invalid`, `agent_completed`, `agent_failed`, `awaiting_review`, `approved`, `report_started`, `evidence_requested`, `investigation_completed`, `investigation_failed` and `budget_exhausted`.
+- Every citation stored in an agent output has resolved to a row of the same organization and case. Any citation that didn't was removed, and a `reference_rejected` event records it.
+- Agents never change findings.
+- An investigation of another organization, or of a deleted case, is a 404.
+
+Since Phase 6, every request's transaction commits before the response is sent (`Depends(db_session, scope="function")`), so a client can read its own write immediately after a 2xx.
+
+## Endpoints (Phase 7)
+| Method | Path | Permission | Notes |
+|---|---|---|---|
+| POST | /cases/{id}/reports | reports:create | `{format: pdf\|docx\|xlsx\|json, investigation_id?}` returns 202 (`queued`). The worker builds, verifies, renders and stores the report. An investigation must be completed and approved, otherwise 409. Audited as `report.request`. |
+| GET | /cases/{id}/reports | reports:read | History, newest first: `format`, `status`, `sha256`, `size_bytes`, `error`, `created_by_email`, and `findings_total` / `findings_not_reviewed` as they were at generation |
+| GET | /reports/{id} | reports:read | The above plus `model`, the verified content every format was rendered from |
+| GET | /reports/{id}/download | reports:read | `{url, expires_at}`: a signed link valid for 60 s. 409 unless the report is `completed`. Audited as `report.access`. |
+| GET | /report-files/{token} | signed link | The file, sent as an attachment with `X-Report-SHA256`. The stored file's hash is re-checked first. Audited as `report.download`. A document link is refused here (403), and a report link is refused on `/files` (403). |
+| PATCH | /findings/{id}/assignee | findings:assign | `{user_id \| null}`. The user must be a member of the organization, otherwise 422. Audited as `finding.assign`. |
+| POST | /findings/{id}/evidence-requests | findings:comment | `{document_types, note}` returns 201. Shown on the finding (`evidence_requests`), on the case (`/cases/{id}/evidence-requests`) and in reports. 422 if no type is left after trimming. Audited as `finding.request_evidence`. |
+
+- `FindingSummary` gains `assignee_user_id`.
+- `FindingDetail` gains `assignee_email` and `evidence_requests`.
+- `EvidenceRequestOut` gains `finding_id`.
+- A failed report's `error` lists every reference that didn't resolve, or a summary value missing from the content, separated by `; `.
+- Reports, findings and requests of another organization, or of a deleted case, are a 404.
+
+## Endpoints (Document Comparison Lab)
+An original and a test document of the same case are compared: pages are aligned, text and pixels compared, and the strongest regions checked by the vision model. Results are differences for review, never verdicts.
+
+| Method | Path | Permission | Notes |
+|---|---|---|---|
+| POST | /cases/{id}/comparisons/upload | comparisons:run + documents:upload | Multipart `original` and `test` (PDF, PNG, JPEG, TIFF). Both go through normal ingestion (magic bytes, SHA-256, duplicates, immutable storage) and a processing job. Returns 202 `{comparison, original, test, job_id}`; the comparison waits for processing. A rejected file is 422; two identical files are 409. A file already in the case is reused (`status: duplicate`). |
+| POST | /cases/{id}/comparisons | comparisons:run | `{original_document_id, test_document_id}`, two different documents of this case, returns 202 (`queued`). Other file types are 422; a document of another case is 404. Audited as `comparison.create`. |
+| GET | /cases/{id}/comparisons | comparisons:read | Newest first: `status` (`queued`, `waiting_for_documents`, `running`, `completed`, `failed`), `stage`, `progress` (0-100, persisted by the worker), `vlm_status` (`used`, `unavailable`, `failed`, `disabled`, `not_run`), `vlm_model`, `findings_count`, `findings_unreviewed`, filenames |
+| GET | /comparisons/{id} | comparisons:read | The above plus `settings`, `summary` (both SHA-256s, page alignment method and SSIM per page, counts, method thresholds, vision-model calls, seconds, tokens, rejected boxes and proposals), `limitation`, `findings` and `exports` |
+| POST | /comparisons/{id}/retry | comparisons:run | Only a `failed` comparison (else 409). Returns 202. Audited as `comparison.retry`. |
+| PATCH | /comparisons/{id}/findings/{fid}/review | findings:review | `{status: confirmed_difference\|needs_more_evidence\|dismissed\|unreviewed, note}`. A note is required to confirm or dismiss (422). Appends to `comparison_reviews`; audited as `comparison.review`. |
+| GET | /comparisons/{id}/findings/{fid}/reviews | comparisons:read | The append-only review history with actor emails |
+| POST | /comparisons/{id}/exports | comparisons:run | `{kind: annotated_pdf\|annotated_images\|report_pdf\|findings_json}`, returns 202. Regenerates from the current rows (e.g. after review: dismissed differences aren't drawn). 409 unless the comparison is completed. The four kinds are also generated automatically on completion. |
+| GET | /comparisons/{id}/exports | comparisons:read | Newest first: `kind`, `status`, `sha256`, `size_bytes`, `error` |
+| GET | /comparison-exports/{id}/download | comparisons:read | `{url, expires_at}`, a signed link valid for 60 s; 409 unless completed. Audited as `comparison.export_access`. |
+| GET | /comparison-files/{token} | signed link | The file as an attachment with `X-Export-SHA256`, after re-checking the stored hash. Audited as `comparison.export_download`. Document and report links are refused here (403), and export links are refused on `/files` and `/report-files` (403). |
+| GET | /system/vlm-status | comparisons:read | `{enabled, configured, model, endpoint_host, reachable, model_available, error}` from the endpoint's `/models` list; sends no document data |
+
+A finding (`ComparisonFindingOut`) has `number` (drawn on the annotated files), `type` (`text_changed`, `text_added`, `text_removed`, `visual_difference`, `vlm_observed_difference`, `page_added`, `page_removed`), `sources` (`ocr` for text-layer or OCR text, `cv`, `vlm`, `page`), `test_page` and `region`, `original_page` and `original_region` (each `[x0, y0, x1, y1]`, top-left origin, in its own page units and validated inside the page), `original_text`, `test_text`, `severity` (at most `medium`), `evidence_confidence`, `explanation`, `metrics` (`confidence_basis`, `extracted_fields` references, pixel and OCR measurements) and `vlm_assessment`. Comparisons, findings and exports of another organization are a 404.
+
 ## Tokens
 - Access tokens are HS256 JWTs valid for 15 minutes, with claims `sub, org, role, type=access, jti, iat, exp`. The role in the token is informational: every request re-reads the membership and role from the database.
 - Refresh tokens are opaque random 256-bit strings, stored only as SHA-256 hashes and valid for 7 days.

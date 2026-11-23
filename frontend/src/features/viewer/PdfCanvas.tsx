@@ -8,6 +8,9 @@ import { Overlays } from "@/features/viewer/Overlays";
 
 GlobalWorkerOptions.workerSrc = workerUrl;
 
+/** Marks the viewer's own file requests (see `get_file` in backend/app/api/v1/documents.py). */
+const VIEWER_HEADER = "X-Veritas-Viewer";
+
 interface PdfCanvasProps {
   url: string;
   page: number;
@@ -16,29 +19,54 @@ interface PdfCanvasProps {
   width: number;
   onPageCount: (n: number) => void;
   onSelect?: (id: string) => void;
+  /** Called once when the signed link was refused (expired); the parent fetches a new one. */
+  onExpired?: () => void;
 }
 
 /** Renders one PDF page with PDF.js and draws the evidence boxes over it. */
-export default function PdfCanvas({ url, page, zoom, boxes, width, onPageCount, onSelect }: PdfCanvasProps) {
+export default function PdfCanvas({ url, page, zoom, boxes, width, onPageCount, onSelect, onExpired }: PdfCanvasProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [scale, setScale] = useState(1);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // One fresh-link retry per mounted viewer (evidence-explorer design: retry an expired link once).
+  const retried = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
-    const task = getDocument({ url, isEvalSupported: false });
-    task.promise
-      .then((doc) => {
+    let task: ReturnType<typeof getDocument> | null = null;
+    const controller = new AbortController();
+    setError(null);
+    // Read the bytes ourselves: the marked request gets an anonymous binary response, which
+    // download managers (e.g. IDM) don't capture, unlike a PDF fetched by URL.
+    fetch(url, { headers: { [VIEWER_HEADER]: "1" }, signal: controller.signal, cache: "no-store" })
+      .then(async (res) => {
+        if (res.status === 403 && onExpired && !retried.current) {
+          // Signed links last 60 s; a cached one may have expired. Ask for a new one.
+          retried.current = true;
+          onExpired();
+          return;
+        }
+        if (!res.ok) throw new Error(`The file could not be loaded (HTTP ${res.status}).`);
+        const data = new Uint8Array(await res.arrayBuffer());
+        if (data.length === 0) {
+          throw new Error("The file arrived empty. A download manager or browser extension may have intercepted it.");
+        }
+        if (cancelled) return;
+        task = getDocument({ data, isEvalSupported: false });
+        const doc = await task.promise;
         if (cancelled) return;
         setPdf(doc);
         onPageCount(doc.numPages);
       })
-      .catch((err: unknown) => !cancelled && setError(err instanceof Error ? err.message : "PDF failed to load"));
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "PDF failed to load");
+      });
     return () => {
       cancelled = true;
-      void task.destroy();
+      controller.abort();
+      void task?.destroy();
     };
     // onPageCount is a stable setter from the parent
     // eslint-disable-next-line react-hooks/exhaustive-deps

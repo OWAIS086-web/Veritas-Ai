@@ -24,11 +24,12 @@ A **modular monolith**. One FastAPI application and one Celery worker codebase s
 | ingestion | core, identity |
 | extraction (ocr, parsing, classification) | core, identity, ingestion |
 | forensics | core, identity, ingestion |
+| doccompare (comparison lab) | core, identity, ingestion, extraction (read-only `document_pages` and `extracted_fields`), forensics (the `imaging` raster and SSIM primitives) |
 | entity_resolution | core, identity, extraction |
 | comparison | core, identity, extraction, entity_resolution |
 | graph | core, identity, comparison, entity_resolution |
 | investigation | all of the above, through the permissioned tool layer |
-| reporting | core, identity, comparison, graph, investigation |
+| reporting | core, identity, extraction, forensics, comparison, graph, investigation (read-only use of extraction and forensics: reporting requirement 1.1 has "extracted information" and "forensic observations" sections, and a report must not need an investigation run) |
 
 ## Layout
 ```

@@ -24,7 +24,7 @@ router = APIRouter(tags=["forensics"], responses=PROBLEM_RESPONSES)
 async def document_forensics(
     document_id: uuid.UUID,
     principal: Principal = Depends(require_permission("forensics:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> ForensicRunOut | None:
     return await queries.latest_run(session, principal.organization_id, document_id)
 
@@ -37,6 +37,6 @@ async def document_forensics(
 async def case_forensics(
     case_id: uuid.UUID,
     principal: Principal = Depends(require_permission("forensics:read")),
-    session: AsyncSession = Depends(db_session),
+    session: AsyncSession = Depends(db_session, scope="function"),
 ) -> list[ForensicSummaryOut]:
     return await queries.case_summary(session, principal.organization_id, case_id)

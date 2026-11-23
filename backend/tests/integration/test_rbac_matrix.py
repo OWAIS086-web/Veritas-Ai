@@ -43,7 +43,56 @@ ENDPOINTS: list[Endpoint] = [
     ("GET", "/api/v1/relationships/{random}/evidence", "graph:read", None),
     ("GET", "/api/v1/documents/{random}/forensics", "forensics:read", None),
     ("GET", "/api/v1/cases/{random}/forensics", "forensics:read", None),
+    ("POST", "/api/v1/cases/{random}/reports", "reports:create", {"format": "pdf"}),
+    ("GET", "/api/v1/cases/{random}/reports", "reports:read", None),
+    ("GET", "/api/v1/reports/{random}", "reports:read", None),
+    ("GET", "/api/v1/reports/{random}/download", "reports:read", None),
+    ("PATCH", "/api/v1/findings/{random}/assignee", "findings:assign", {"user_id": None}),
+    (
+        "POST",
+        "/api/v1/findings/{random}/evidence-requests",
+        "findings:comment",
+        {"document_types": ["freight_invoice"], "note": "Needed"},
+    ),
+    ("POST", "/api/v1/cases/{random}/investigate", "investigations:run", {"objective": "Check"}),
+    ("GET", "/api/v1/cases/{random}/investigations", "investigations:read", None),
+    ("GET", "/api/v1/cases/{random}/evidence-requests", "investigations:read", None),
+    ("GET", "/api/v1/investigations/{random}", "investigations:read", None),
+    ("GET", "/api/v1/investigations/{random}/events", "investigations:read", None),
+    ("POST", "/api/v1/investigations/{random}/approve", "findings:review", None),
+    (
+        "POST",
+        "/api/v1/investigations/{random}/request-evidence",
+        "findings:comment",
+        {"document_types": ["freight_invoice"], "note": "Needed"},
+    ),
+    (
+        "POST",
+        "/api/v1/cases/{random}/comparisons",
+        "comparisons:run",
+        {"original_document_id": "{random}", "test_document_id": "{random2}"},
+    ),
+    ("GET", "/api/v1/cases/{random}/comparisons", "comparisons:read", None),
+    ("GET", "/api/v1/comparisons/{random}", "comparisons:read", None),
+    ("POST", "/api/v1/comparisons/{random}/retry", "comparisons:run", None),
+    (
+        "PATCH",
+        "/api/v1/comparisons/{random}/findings/{random}/review",
+        "findings:review",
+        {"status": "needs_more_evidence"},
+    ),
+    ("GET", "/api/v1/comparisons/{random}/findings/{random}/reviews", "comparisons:read", None),
+    ("POST", "/api/v1/comparisons/{random}/exports", "comparisons:run", {"kind": "findings_json"}),
+    ("GET", "/api/v1/comparisons/{random}/exports", "comparisons:read", None),
+    ("GET", "/api/v1/comparison-exports/{random}/download", "comparisons:read", None),
+    ("GET", "/api/v1/system/vlm-status", "comparisons:read", None),
 ]
+
+
+def _body(body: dict[str, object] | None) -> dict[str, object] | None:
+    if body is None:
+        return None
+    return {k: str(uuid.uuid4()) if v in ("{random}", "{random2}") else v for k, v in body.items()}
 
 
 async def _accounts(client: httpx.AsyncClient) -> tuple[Account, dict[Role, Account]]:
@@ -71,7 +120,9 @@ async def test_role_permission_matrix(client: httpx.AsyncClient) -> None:
     failures: list[str] = []
     for role, account in by_role.items():
         for method, path, permission, body in ENDPOINTS:
-            resp = await client.request(method, fill(path), headers=account.headers, json=body)
+            resp = await client.request(
+                method, fill(path), headers=account.headers, json=_body(body)
+            )
             allowed = permission in ROLE_PERMISSIONS[role]
             if allowed and resp.status_code == 403:
                 failures.append(f"{role} {method} {path}: expected allowed, got 403")

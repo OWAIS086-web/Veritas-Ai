@@ -7,7 +7,8 @@ export interface OverlayBox {
   id: string;
   bbox: number[];
   label: string;
-  tone: "evidence" | "warning" | "muted";
+  /** evidence: supporting (cyan); danger: conflicting (red); warning: forensic or search. */
+  tone: "evidence" | "danger" | "warning" | "muted";
   active?: boolean;
 }
 

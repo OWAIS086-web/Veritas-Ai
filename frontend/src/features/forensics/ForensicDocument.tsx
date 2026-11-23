@@ -153,11 +153,11 @@ function RunView({ summary, run }: { summary: ForensicSummaryOut; run: ForensicR
             <Skeleton className="h-[70vh]" />
           ) : isPdf ? (
             <Suspense fallback={<Skeleton className="h-[70vh]" />}>
-              <PdfCanvas url={preview.data.url} page={page} zoom={zoom} width={width - 32}
+              <PdfCanvas onExpired={() => void preview.refetch()} url={preview.data.url} page={page} zoom={zoom} width={width - 32}
                          boxes={boxes} onPageCount={setPageCount} onSelect={setSelected} />
             </Suspense>
           ) : (
-            <ImageCanvas url={preview.data.url} alt={`${summary.filename}, page ${page}`}
+            <ImageCanvas onExpired={() => void preview.refetch()} url={preview.data.url} alt={`${summary.filename}, page ${page}`}
                          zoom={zoom} width={width - 32} boxes={boxes} onSelect={setSelected} />
           )}
         </div>

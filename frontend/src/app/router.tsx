@@ -2,12 +2,14 @@ import { createBrowserRouter, type RouteObject } from "react-router-dom";
 
 import { NAV_ITEMS } from "@/app/navigation";
 import { PhasePending } from "@/components/PhasePending";
+import { AgentsPage } from "@/features/agents/AgentsPage";
 import { AuditLogsPage } from "@/features/audit/AuditLogsPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { RegisterPage } from "@/features/auth/RegisterPage";
 import { RequireAuth } from "@/features/auth/RequireAuth";
 import { DocumentPage } from "@/features/documents/DocumentPage";
 import { DocumentsPage } from "@/features/documents/DocumentsPage";
+import { EvidenceExplorerPage } from "@/features/explorer/EvidenceExplorerPage";
 import { FindingDetailPage } from "@/features/findings/FindingDetailPage";
 import { FindingsPage } from "@/features/findings/FindingsPage";
 import { ForensicsPage } from "@/features/forensics/ForensicsPage";
@@ -16,6 +18,7 @@ import { CaseWorkspacePage } from "@/features/investigations/CaseWorkspacePage";
 import { CreateInvestigationPage } from "@/features/investigations/CreateInvestigationPage";
 import { InvestigationsPage } from "@/features/investigations/InvestigationsPage";
 import { OverviewPage } from "@/features/overview/OverviewPage";
+import { ReportsPage } from "@/features/reports/ReportsPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { AppShell } from "@/layouts/AppShell";
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -48,6 +51,9 @@ export const routes: RouteObject[] = [
       { path: "documents/:documentId", element: <DocumentPage /> },
       { path: "graph", element: <GraphPage /> },
       { path: "forensics", element: <ForensicsPage /> },
+      { path: "agents", element: <AgentsPage /> },
+      { path: "evidence", element: <EvidenceExplorerPage /> },
+      { path: "reports", element: <ReportsPage /> },
       { path: "findings", element: <FindingsPage /> },
       { path: "findings/:findingId", element: <FindingDetailPage /> },
       { path: "audit", element: <AuditLogsPage /> },

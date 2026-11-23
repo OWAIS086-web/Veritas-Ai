@@ -160,6 +160,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/comparisons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comparisons of a case with their status and progress */
+        get: operations["case_comparisons_api_v1_cases__case_id__comparisons_get"];
+        put?: never;
+        /** Compare a test document against an original (both documents of the case) */
+        post: operations["create_comparison_api_v1_cases__case_id__comparisons_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/comparisons/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload an original and a test file and compare them once both are processed */
+        post: operations["upload_comparison_api_v1_cases__case_id__comparisons_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases/{case_id}/documents": {
         parameters: {
             query?: never;
@@ -172,6 +207,23 @@ export interface paths {
         put?: never;
         /** Upload documents or ZIP archives; accepted files are queued for processing */
         post: operations["upload_documents_api_v1_cases__case_id__documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/evidence-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Evidence requested by reviewers for this case */
+        get: operations["case_evidence_requests_api_v1_cases__case_id__evidence_requests_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -246,6 +298,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases/{case_id}/investigate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start an autonomous investigation of the case (runs in the worker) */
+        post: operations["investigate_api_v1_cases__case_id__investigate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/investigations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Investigations of a case, newest first */
+        get: operations["case_investigations_api_v1_cases__case_id__investigations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cases/{case_id}/process": {
         parameters: {
             query?: never;
@@ -257,6 +343,144 @@ export interface paths {
         put?: never;
         /** Queue every uploaded or failed document of the case */
         post: operations["process_case_api_v1_cases__case_id__process_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Report history of a case: format, status, review status of the findings, creator */
+        get: operations["case_reports_api_v1_cases__case_id__reports_get"];
+        put?: never;
+        /** Request a report (pdf, docx, json or xlsx); generated and verified in the worker */
+        post: operations["create_report_api_v1_cases__case_id__reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comparison-exports/{export_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short-lived signed link to an export file (audited) */
+        get: operations["export_download_api_v1_comparison_exports__export_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comparison-files/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Serve a comparison export through a signed link (no bearer token; it expires) */
+        get: operations["comparison_file_api_v1_comparison_files__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comparisons/{comparison_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A comparison with its summary, findings (regions on both documents) and exports */
+        get: operations["get_comparison_api_v1_comparisons__comparison_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comparisons/{comparison_id}/exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exports of a comparison, newest first */
+        get: operations["list_exports_api_v1_comparisons__comparison_id__exports_get"];
+        put?: never;
+        /** Generate an export again (e.g. after review): annotated PDF or images, report, JSON */
+        post: operations["create_export_api_v1_comparisons__comparison_id__exports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comparisons/{comparison_id}/findings/{finding_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Record a human review decision (a note is required to confirm or dismiss) */
+        patch: operations["review_finding_api_v1_comparisons__comparison_id__findings__finding_id__review_patch"];
+        trace?: never;
+    };
+    "/api/v1/comparisons/{comparison_id}/findings/{finding_id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The append-only review history of a finding */
+        get: operations["finding_reviews_api_v1_comparisons__comparison_id__findings__finding_id__reviews_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comparisons/{comparison_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run a failed comparison again */
+        post: operations["retry_comparison_api_v1_comparisons__comparison_id__retry_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -467,6 +691,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/findings/{finding_id}/assignee": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Assign the finding to an investigator of the organization (null clears it) */
+        patch: operations["assign_api_v1_findings__finding_id__assignee_patch"];
+        trace?: never;
+    };
     "/api/v1/findings/{finding_id}/comments": {
         parameters: {
             query?: never;
@@ -501,6 +742,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/findings/{finding_id}/evidence-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request additional documents for this finding (shown on the case) */
+        post: operations["request_evidence_api_v1_findings__finding_id__evidence_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/findings/{finding_id}/status": {
         parameters: {
             query?: never;
@@ -516,6 +774,74 @@ export interface paths {
         head?: never;
         /** Record a review decision (409 when confirming a finding without evidence) */
         patch: operations["change_status_api_v1_findings__finding_id__status_patch"];
+        trace?: never;
+    };
+    "/api/v1/investigations/{investigation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** State of an investigation: status, budget use, agent runs and validated outputs */
+        get: operations["get_investigation_api_v1_investigations__investigation_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investigations/{investigation_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve an investigation awaiting review; the report step then runs */
+        post: operations["approve_api_v1_investigations__investigation_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investigations/{investigation_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-sent agent events; send Last-Event-ID to resume after a reconnect */
+        get: operations["investigation_events_api_v1_investigations__investigation_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/investigations/{investigation_id}/request-evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a request for more documents; it is shown on the case */
+        post: operations["request_evidence_api_v1_investigations__investigation_id__request_evidence_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/jobs/{job_id}": {
@@ -641,6 +967,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/report-files/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Serve a report file through a signed link (no bearer token; the link expires) */
+        get: operations["report_file_api_v1_report_files__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A report with the verified content every format was rendered from */
+        get: operations["get_report_api_v1_reports__report_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short-lived signed link to the report file (audited) */
+        get: operations["download_api_v1_reports__report_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stats/overview": {
         parameters: {
             query?: never;
@@ -692,10 +1069,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/system/vlm-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Is the vision model (VERITAS_VLM_MODEL) configured and reachable? No document data */
+        get: operations["vlm_status_api_v1_system_vlm_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AgentRunOut */
+        AgentRunOut: {
+            /** Agent */
+            agent: string;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Model */
+            model: string | null;
+            /** Output */
+            output: {
+                [key: string]: unknown;
+            };
+            /** Output Summary */
+            output_summary: string;
+            /** Prompt Version */
+            prompt_version: string | null;
+            /** Provider */
+            provider: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Status */
+            status: string;
+            /** Tokens */
+            tokens: number | null;
+            /** Tool Calls */
+            tool_calls: number;
+        };
+        /** AssigneeChange */
+        AssigneeChange: {
+            /**
+             * User Id
+             * @description A member of the organization, or null to clear
+             */
+            user_id: string | null;
+        };
         /** AuditLogOut */
         AuditLogOut: {
             /** Action */
@@ -721,6 +1162,19 @@ export interface components {
             resource_id: string | null;
             /** Resource Type */
             resource_type: string | null;
+        };
+        /** Body_upload_comparison_api_v1_cases__case_id__comparisons_upload_post */
+        Body_upload_comparison_api_v1_cases__case_id__comparisons_upload_post: {
+            /**
+             * Original
+             * @description The reference document (PDF, PNG, JPEG, TIFF)
+             */
+            original: string;
+            /**
+             * Test
+             * @description The document examined for differences
+             */
+            test: string;
         };
         /** Body_upload_documents_api_v1_cases__case_id__documents_post */
         Body_upload_documents_api_v1_cases__case_id__documents_post: {
@@ -852,6 +1306,282 @@ export interface components {
              */
             job_id: string;
         };
+        /** ComparisonCreate */
+        ComparisonCreate: {
+            /**
+             * Original Document Id
+             * Format: uuid
+             * @description The reference document
+             */
+            original_document_id: string;
+            /**
+             * Test Document Id
+             * Format: uuid
+             * @description The document examined for differences
+             */
+            test_document_id: string;
+        };
+        /** ComparisonDetail */
+        ComparisonDetail: {
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Error */
+            error: string | null;
+            /** Exports */
+            exports: components["schemas"]["ComparisonExportOut"][];
+            /** Findings */
+            findings: components["schemas"]["ComparisonFindingOut"][];
+            /**
+             * Findings Count
+             * @default 0
+             */
+            findings_count: number;
+            /**
+             * Findings Unreviewed
+             * @default 0
+             */
+            findings_unreviewed: number;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Limitation */
+            limitation: string;
+            /**
+             * Original Document Id
+             * Format: uuid
+             */
+            original_document_id: string;
+            /** Original Filename */
+            original_filename?: string | null;
+            /**
+             * Progress
+             * @description 0-100, persisted by the worker
+             */
+            progress: number;
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+            /** Stage */
+            stage: string | null;
+            /** Started At */
+            started_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "waiting_for_documents" | "running" | "completed" | "failed";
+            /**
+             * Summary
+             * @description Documents and hashes, page alignment, counts, method and vision-model stats
+             */
+            summary: {
+                [key: string]: unknown;
+            };
+            /**
+             * Test Document Id
+             * Format: uuid
+             */
+            test_document_id: string;
+            /** Test Filename */
+            test_filename?: string | null;
+            /** Vlm Model */
+            vlm_model: string | null;
+            /**
+             * Vlm Status
+             * @enum {string}
+             */
+            vlm_status: "used" | "unavailable" | "failed" | "disabled" | "not_run";
+        };
+        /** ComparisonExportOut */
+        ComparisonExportOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "annotated_pdf" | "annotated_images" | "report_pdf" | "findings_json";
+            /** Sha256 */
+            sha256: string | null;
+            /** Size Bytes */
+            size_bytes: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "completed" | "failed";
+        };
+        /** ComparisonFindingOut */
+        ComparisonFindingOut: {
+            /** Evidence Confidence */
+            evidence_confidence: string;
+            /** Explanation */
+            explanation: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /**
+             * Number
+             * @description The number drawn on the annotated documents
+             */
+            number: number;
+            /** Original Page */
+            original_page: number | null;
+            /**
+             * Original Region
+             * @description The same place on the original page (validated)
+             */
+            original_region: number[] | null;
+            /** Original Text */
+            original_text: string | null;
+            /**
+             * Region
+             * @description [x0, y0, x1, y1] on the test page, top-left origin, page units (validated)
+             */
+            region: number[] | null;
+            /**
+             * Review Status
+             * @enum {string}
+             */
+            review_status: "unreviewed" | "confirmed_difference" | "needs_more_evidence" | "dismissed";
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "info" | "low" | "medium";
+            /**
+             * Sources
+             * @description ocr (text layer or OCR), cv (pixels), vlm
+             */
+            sources: string[];
+            /** Test Page */
+            test_page: number | null;
+            /** Test Text */
+            test_text: string | null;
+            /** Type */
+            type: string;
+            /** Vlm Assessment */
+            vlm_assessment: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** ComparisonOut */
+        ComparisonOut: {
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Error */
+            error: string | null;
+            /**
+             * Findings Count
+             * @default 0
+             */
+            findings_count: number;
+            /**
+             * Findings Unreviewed
+             * @default 0
+             */
+            findings_unreviewed: number;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Original Document Id
+             * Format: uuid
+             */
+            original_document_id: string;
+            /** Original Filename */
+            original_filename?: string | null;
+            /**
+             * Progress
+             * @description 0-100, persisted by the worker
+             */
+            progress: number;
+            /** Stage */
+            stage: string | null;
+            /** Started At */
+            started_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "waiting_for_documents" | "running" | "completed" | "failed";
+            /**
+             * Test Document Id
+             * Format: uuid
+             */
+            test_document_id: string;
+            /** Test Filename */
+            test_filename?: string | null;
+            /** Vlm Model */
+            vlm_model: string | null;
+            /**
+             * Vlm Status
+             * @enum {string}
+             */
+            vlm_status: "used" | "unavailable" | "failed" | "disabled" | "not_run";
+        };
+        /** ComparisonUploadOut */
+        ComparisonUploadOut: {
+            comparison: components["schemas"]["ComparisonOut"];
+            /**
+             * Job Id
+             * @description Processing job for newly accepted files
+             */
+            job_id?: string | null;
+            original: components["schemas"]["UploadResult"];
+            test: components["schemas"]["UploadResult"];
+        };
         /** ComponentHealth */
         ComponentHealth: {
             /** Detail */
@@ -949,6 +1679,19 @@ export interface components {
              * Format: date-time
              */
             uploaded_at: string;
+        };
+        /** DownloadOut */
+        DownloadOut: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Url
+             * @description Signed link, valid for a short time
+             */
+            url: string;
         };
         /** EdgeEvidenceOut */
         EdgeEvidenceOut: {
@@ -1061,6 +1804,51 @@ export interface components {
             /** Value */
             value: string | null;
         };
+        /** EvidenceRequestCreate */
+        EvidenceRequestCreate: {
+            /** Document Types */
+            document_types: string[];
+            /** Note */
+            note: string;
+        };
+        /** EvidenceRequestOut */
+        EvidenceRequestOut: {
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Document Types */
+            document_types: string[];
+            /** Finding Id */
+            finding_id?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Investigation Id */
+            investigation_id: string | null;
+            /** Note */
+            note: string;
+            /** Status */
+            status: string;
+        };
+        /** ExportCreate */
+        ExportCreate: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "annotated_pdf" | "annotated_images" | "report_pdf" | "findings_json";
+        };
         /** ExtractionOut */
         ExtractionOut: {
             /**
@@ -1161,6 +1949,10 @@ export interface components {
              * @description Magnitude of the inconsistency (0..1). Not a likelihood of wrongdoing.
              */
             anomaly_score: string | null;
+            /** Assignee Email */
+            assignee_email?: string | null;
+            /** Assignee User Id */
+            assignee_user_id?: string | null;
             /**
              * Case Id
              * Format: uuid
@@ -1202,6 +1994,8 @@ export interface components {
              * @default 0
              */
             evidence_count: number;
+            /** Evidence Requests */
+            evidence_requests?: components["schemas"]["EvidenceRequestOut"][];
             /**
              * Evidence Status
              * @enum {string}
@@ -1266,6 +2060,8 @@ export interface components {
              * @description Magnitude of the inconsistency (0..1). Not a likelihood of wrongdoing.
              */
             anomaly_score: string | null;
+            /** Assignee User Id */
+            assignee_user_id?: string | null;
             /**
              * Case Id
              * Format: uuid
@@ -1560,6 +2356,124 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "degraded";
+        };
+        /** InvestigateRequest */
+        InvestigateRequest: {
+            /** Objective */
+            objective: string;
+        };
+        /** InvestigationDetail */
+        InvestigationDetail: {
+            /** Agent Runs */
+            agent_runs?: components["schemas"]["AgentRunOut"][];
+            /** Approved At */
+            approved_at: string | null;
+            /** Approved By */
+            approved_by: string | null;
+            /**
+             * Budget
+             * @description Limits: iterations, tool calls, tokens, seconds
+             */
+            budget: {
+                [key: string]: unknown;
+            };
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Error */
+            error: string | null;
+            /** Evidence Requests */
+            evidence_requests?: components["schemas"]["EvidenceRequestOut"][];
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Objective */
+            objective: string;
+            /**
+             * Result
+             * @description Each agent's validated output (`agents`) and, after approval, the report draft (`report_draft`). Every citation in it resolved to a persisted row.
+             */
+            result: {
+                [key: string]: unknown;
+            };
+            /** Started At */
+            started_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "awaiting_review" | "approved" | "completed" | "failed" | "budget_exhausted";
+            /**
+             * Usage
+             * @description Spent so far. `tokens` counts only provider-reported tokens; `unmetered_calls` counts model calls whose provider reported none.
+             */
+            usage: {
+                [key: string]: unknown;
+            };
+        };
+        /** InvestigationOut */
+        InvestigationOut: {
+            /** Approved At */
+            approved_at: string | null;
+            /** Approved By */
+            approved_by: string | null;
+            /**
+             * Budget
+             * @description Limits: iterations, tool calls, tokens, seconds
+             */
+            budget: {
+                [key: string]: unknown;
+            };
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Objective */
+            objective: string;
+            /** Started At */
+            started_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "awaiting_review" | "approved" | "completed" | "failed" | "budget_exhausted";
+            /**
+             * Usage
+             * @description Spent so far. `tokens` counts only provider-reported tokens; `unmetered_calls` counts model calls whose provider reported none.
+             */
+            usage: {
+                [key: string]: unknown;
+            };
         };
         /** JobOut */
         JobOut: {
@@ -1918,6 +2832,176 @@ export interface components {
             /** Type */
             type: string;
         };
+        /** ReportCreate */
+        ReportCreate: {
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "pdf" | "docx" | "json" | "xlsx";
+            /**
+             * Investigation Id
+             * @description An approved, completed investigation of the same case
+             */
+            investigation_id?: string | null;
+        };
+        /** ReportDetail */
+        ReportDetail: {
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Created By Email */
+            created_by_email?: string | null;
+            /**
+             * Error
+             * @description For a failed report: the references that didn't resolve
+             */
+            error: string | null;
+            /**
+             * Findings Not Reviewed
+             * @description Findings labelled 'Not yet reviewed' when the report was generated
+             * @default 0
+             */
+            findings_not_reviewed: number;
+            /**
+             * Findings Total
+             * @default 0
+             */
+            findings_total: number;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "pdf" | "docx" | "json" | "xlsx";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Investigation Id */
+            investigation_id: string | null;
+            /**
+             * Model
+             * @description The verified report content every format was rendered from
+             */
+            model?: {
+                [key: string]: unknown;
+            } | null;
+            /** Sha256 */
+            sha256: string | null;
+            /** Size Bytes */
+            size_bytes: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "completed" | "failed";
+        };
+        /** ReportOut */
+        ReportOut: {
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Created By Email */
+            created_by_email?: string | null;
+            /**
+             * Error
+             * @description For a failed report: the references that didn't resolve
+             */
+            error: string | null;
+            /**
+             * Findings Not Reviewed
+             * @description Findings labelled 'Not yet reviewed' when the report was generated
+             * @default 0
+             */
+            findings_not_reviewed: number;
+            /**
+             * Findings Total
+             * @default 0
+             */
+            findings_total: number;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "pdf" | "docx" | "json" | "xlsx";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Investigation Id */
+            investigation_id: string | null;
+            /** Sha256 */
+            sha256: string | null;
+            /** Size Bytes */
+            size_bytes: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "completed" | "failed";
+        };
+        /** ReviewEntryOut */
+        ReviewEntryOut: {
+            /** Actor Email */
+            actor_email?: string | null;
+            /** Actor User Id */
+            actor_user_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Finding Id
+             * Format: uuid
+             */
+            finding_id: string;
+            /** From Status */
+            from_status: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string | null;
+            /** To Status */
+            to_status: string;
+        };
+        /** ReviewIn */
+        ReviewIn: {
+            /** Note */
+            note?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "unreviewed" | "confirmed_difference" | "needs_more_evidence" | "dismissed";
+        };
         /**
          * Role
          * @enum {string}
@@ -2021,6 +3105,26 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VlmStatusOut */
+        VlmStatusOut: {
+            /** Configured */
+            configured: boolean;
+            /**
+             * Enabled
+             * @description VERITAS_COMPARISON_VLM_ENABLED
+             */
+            enabled: boolean;
+            /** Endpoint Host */
+            endpoint_host: string | null;
+            /** Error */
+            error: string | null;
+            /** Model */
+            model: string | null;
+            /** Model Available */
+            model_available: boolean;
+            /** Reachable */
+            reachable: boolean;
         };
     };
     responses: never;
@@ -2650,6 +3754,188 @@ export interface operations {
             };
         };
     };
+    case_comparisons_api_v1_cases__case_id__comparisons_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonOut"][];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_comparison_api_v1_cases__case_id__comparisons_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComparisonCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_comparison_api_v1_cases__case_id__comparisons_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_comparison_api_v1_cases__case_id__comparisons_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonUploadOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_case_documents_api_v1_cases__case_id__documents_get: {
         parameters: {
             query?: never;
@@ -2730,6 +4016,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UploadResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    case_evidence_requests_api_v1_cases__case_id__evidence_requests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceRequestOut"][];
                 };
             };
             /** @description Missing or invalid credentials */
@@ -3010,6 +4354,126 @@ export interface operations {
             };
         };
     };
+    investigate_api_v1_cases__case_id__investigate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvestigateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestigationOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    case_investigations_api_v1_cases__case_id__investigations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestigationOut"][];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     process_case_api_v1_cases__case_id__process_post: {
         parameters: {
             query?: never;
@@ -3028,6 +4492,599 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProcessResponse"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    case_reports_api_v1_cases__case_id__reports_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"][];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_report_api_v1_cases__case_id__reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_download_api_v1_comparison_exports__export_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                export_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    comparison_file_api_v1_comparison_files__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Invalid or expired link */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_comparison_api_v1_comparisons__comparison_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonDetail"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_exports_api_v1_comparisons__comparison_id__exports_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonExportOut"][];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_export_api_v1_comparisons__comparison_id__exports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonExportOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_finding_api_v1_comparisons__comparison_id__findings__finding_id__review_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+                finding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonFindingOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finding_reviews_api_v1_comparisons__comparison_id__findings__finding_id__reviews_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+                finding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewEntryOut"][];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_comparison_api_v1_comparisons__comparison_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonOut"];
                 };
             };
             /** @description Missing or invalid credentials */
@@ -3600,7 +5657,9 @@ export interface operations {
     get_file_api_v1_files__token__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Veritas-Viewer"?: string | null;
+            };
             path: {
                 token: string;
             };
@@ -3777,6 +5836,68 @@ export interface operations {
             };
         };
     };
+    assign_api_v1_findings__finding_id__assignee_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                finding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssigneeChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FindingDetail"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     add_comment_api_v1_findings__finding_id__comments_post: {
         parameters: {
             query?: never;
@@ -3897,6 +6018,68 @@ export interface operations {
             };
         };
     };
+    request_evidence_api_v1_findings__finding_id__evidence_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                finding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceRequestOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     change_status_api_v1_findings__finding_id__status_patch: {
         parameters: {
             query?: never;
@@ -3950,6 +6133,245 @@ export interface operations {
             };
             /** @description Not allowed in the current state */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_investigation_api_v1_investigations__investigation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                investigation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestigationDetail"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_api_v1_investigations__investigation_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                investigation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvestigationOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    investigation_events_api_v1_investigations__investigation_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Last-Event-ID"?: string | null;
+            };
+            path: {
+                investigation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_evidence_api_v1_investigations__investigation_id__request_evidence_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                investigation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceRequestOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4639,6 +7061,179 @@ export interface operations {
             };
         };
     };
+    report_file_api_v1_report_files__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Invalid or expired link */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_report_api_v1_reports__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetail"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_api_v1_reports__report_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     overview_api_v1_stats_overview_get: {
         parameters: {
             query?: never;
@@ -4731,6 +7326,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    vlm_status_api_v1_system_vlm_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VlmStatusOut"];
                 };
             };
             /** @description Missing or invalid credentials */

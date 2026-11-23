@@ -93,6 +93,29 @@ class Settings(BaseSettings):
     forensics_version_ssim: float = Field(default=0.6, ge=0.1, le=0.99)
     forensics_stamp_threshold: float = Field(default=0.004, ge=0.0005, le=0.5)
 
+    # Original-versus-test document comparison. Pages are registered and compared at
+    # `comparison_work_width` pixels; crops for the vision model and the annotated files come
+    # from rasters at `comparison_dpi`.
+    comparison_dpi: int = Field(default=144, ge=72, le=300)
+    comparison_max_pages: int = Field(default=20, ge=1, le=200)
+    comparison_work_width: int = Field(default=1000, ge=400, le=3000)
+    comparison_ssim_threshold: float = Field(default=0.6, ge=0.1, le=0.99)
+    # The vision model (VERITAS_VLM_MODEL, e.g. qwen2.5vl:7b) checks the strongest candidate
+    # regions and scans pages for differences the deterministic steps missed. Its boxes are
+    # used only when pixel evidence confirms them.
+    comparison_vlm_enabled: bool = True
+    comparison_vlm_max_regions: int = Field(default=8, ge=0, le=50)
+    comparison_vlm_max_pages: int = Field(default=3, ge=0, le=50)
+
+    # Autonomous investigation budgets (per investigation). Exceeding any of them stops the
+    # run with status `budget_exhausted` and keeps the partial results.
+    investigation_max_iterations: int = Field(default=24, ge=1, le=200)
+    investigation_max_tool_calls: int = Field(default=80, ge=1, le=1000)
+    investigation_timeout_seconds: int = Field(default=900, ge=10, le=7200)
+    investigation_max_tokens: int = Field(default=120_000, ge=1000, le=5_000_000)
+    # Characters of page text an agent may put into one prompt (inside <document_data>).
+    investigation_max_page_chars: int = Field(default=3000, ge=200, le=20_000)
+
     # Model provider (OpenAI-compatible). Empty base URL means "no provider configured":
     # the deterministic rules extractor is used and recorded as such.
     llm_base_url: str = ""

@@ -1,0 +1,1261 @@
+{
+  "audit": {
+    "report_id": "279ca0f5-1b68-4c16-8572-a3d6edfcc4e0",
+    "generated_at": "2026-11-23T23:02:58.163713Z",
+    "generated_by": "explorer-mwtuti6p@example.com",
+    "summary_note": null,
+    "summary_method": "template",
+    "investigation_id": null,
+    "pipeline_versions": [
+      "p2.1"
+    ],
+    "investigation_approved_at": null,
+    "investigation_approved_by": null
+  },
+  "label": "SYNTHETIC DEMONSTRATION DATA",
+  "scope": {
+    "findings": 1,
+    "documents": 7,
+    "objective": "",
+    "case_title": "Shipment SHIP-2049 evidence and report",
+    "investigation_type": "international_shipment"
+  },
+  "title": "Investigation report: Shipment SHIP-2049 evidence and report",
+  "objective": "",
+  "report_id": "279ca0f5-1b68-4c16-8572-a3d6edfcc4e0",
+  "limitations": [
+    "This report states observations from the documents provided. It does not establish that any document is authentic or forged, or that any person or organization acted unlawfully.",
+    "Findings come from deterministic comparison rules over extracted values; a value that could not be verified on its page was left out, not guessed.",
+    "Commercial invoice (02_commercial_invoice.pdf, page 1) states Incoterms \"FOB Hong Kong\".",
+    "Customs declaration (03_customs_declaration.pdf, page 2) states valuation basis \"CIF Long Beach\".",
+    "Values stated on different delivery or valuation terms (for example FOB and CIF) are not directly comparable: a CIF value includes freight and insurance.",
+    "An insured value can be set above the invoice value by the policy terms, so it is not by itself a declaration of the goods' price.",
+    "A visual or structural inconsistency alone does not establish document alteration or forgery.",
+    "A visual or structural inconsistency alone does not establish document alteration or forgery.",
+    "Incremental updates and a change of producer are normal for signed, annotated or form-filled PDFs.",
+    "Font checks see only the fonts named in the file; text drawn as images is not covered.",
+    "Scanners, printers and messaging apps also compress and denoise images; a region with different noise can come from how the copy was made.",
+    "Pages drawn from a text layer contain no compressed image content and are not measured.",
+    "Only regions aligned to whole blocks are measured; very small edits may not show.",
+    "Stamp and signature regions are located by ink colour and shape. A black-ink stamp or signature is not found.",
+    "Similarity between stamp images is measured, not authenticity. A different stamp can be legitimate (another office, a reissued stamp), and a similar one can be copied.",
+    "No statement is made about whether a signature is genuine."
+  ],
+  "organization": "Explorer mwtuti6p",
+  "investigation_id": null,
+  "executive_summary": "The case \"Shipment SHIP-2049 evidence and report\" contains 7 document(s). Comparison of their extracted values produced 1 finding(s), 1 of high severity; 1 have not yet been reviewed by a person. The highest-ranked finding is: Declared totals differ by USD 20,000.00.",
+  "documents_analyzed": [
+    {
+      "pages": 1,
+      "sha256": "b9a348b7d64eff22eb7ddb76293f0411f737e2ac1e2e5a40295c5a94bca396c7",
+      "status": "completed",
+      "doc_type": "purchase_order",
+      "filename": "01_purchase_order.pdf",
+      "document_id": "5cad8964-9c74-41dd-8740-3f07ef7c3128"
+    },
+    {
+      "pages": 1,
+      "sha256": "18dea108dbcbb56e78457588b5c5a057bb7c5b6bcc62162c22c55ae8613dff4b",
+      "status": "completed",
+      "doc_type": "commercial_invoice",
+      "filename": "02_commercial_invoice.pdf",
+      "document_id": "5272539d-fc74-44bf-923a-7b109e0dde41"
+    },
+    {
+      "pages": 2,
+      "sha256": "0d217b1c6a83ba7468f79b0937115959a11cddaa43dab754a352b8f855f1e76e",
+      "status": "completed",
+      "doc_type": "customs_declaration",
+      "filename": "03_customs_declaration.pdf",
+      "document_id": "ec85bffc-c9e4-4c3a-9449-8188749cb7c4"
+    },
+    {
+      "pages": 1,
+      "sha256": "7f1afff07004f128cbfaa480605c91da58d01652d48e9a96530094a4d80bef05",
+      "status": "completed",
+      "doc_type": "insurance_certificate",
+      "filename": "04_insurance_certificate.pdf",
+      "document_id": "f09fabdb-347b-454c-b5e8-b2f6c5bca9ba"
+    },
+    {
+      "pages": 1,
+      "sha256": "050618443359475230b6da8efb09b48954afc740a64644afad842a7890d04025",
+      "status": "completed",
+      "doc_type": "payment_receipt",
+      "filename": "05_payment_receipt.pdf",
+      "document_id": "0e7b0be9-528a-4b56-bcc3-d8b713f96d73"
+    },
+    {
+      "pages": 1,
+      "sha256": "b86178cfdda90c024b901cbf88b5e69bd4df47fe2d70b283167fdf670e587185",
+      "status": "completed",
+      "doc_type": "packing_list",
+      "filename": "06_packing_list.pdf",
+      "document_id": "59a96839-e761-480a-8cae-9f00833dd7c6"
+    },
+    {
+      "pages": 1,
+      "sha256": "ce6da32e72b8fe8e187234aae1d4f00a16214bd11f7ac73b00bdcfa33ffbce3f",
+      "status": "completed",
+      "doc_type": "bill_of_lading",
+      "filename": "07_bill_of_lading.pdf",
+      "document_id": "7eb08ad8-f1a1-409d-a593-a7e55bcf04ba"
+    }
+  ],
+  "entities_identified": [
+    {
+      "name": "1200 Commerce Way, Long Beach, CA 90802, USA",
+      "type": "address",
+      "status": "resolved",
+      "mentions": 1,
+      "entity_id": "d5d86e96-49ea-528c-91a2-213d5d724882"
+    },
+    {
+      "name": "Unit 7, 88 Harbour Road, Kowloon, Hong Kong",
+      "type": "address",
+      "status": "resolved",
+      "mentions": 1,
+      "entity_id": "5635dfc0-e064-50ee-b346-432ee2e4d385"
+    },
+    {
+      "name": "ABC Imports Inc.",
+      "type": "organization",
+      "status": "resolved",
+      "mentions": 7,
+      "entity_id": "b365eefe-92a7-5278-8cb7-beaf4f45473d"
+    },
+    {
+      "name": "Global Trading Ltd",
+      "type": "organization",
+      "status": "resolved",
+      "mentions": 7,
+      "entity_id": "71bfff50-f943-5e10-9e98-8cc54e13fa75"
+    },
+    {
+      "name": "Meridian Marine Insurance Co.",
+      "type": "organization",
+      "status": "resolved",
+      "mentions": 1,
+      "entity_id": "8c461436-9af5-5054-86cb-69f6668b95de"
+    },
+    {
+      "name": "Pacific Harbour Bank",
+      "type": "organization",
+      "status": "resolved",
+      "mentions": 1,
+      "entity_id": "0d8bc966-ad35-5951-8fdf-23002b3261b8"
+    },
+    {
+      "name": "1,000 units LED Panel Light 600x600 mm, 40 W",
+      "type": "product",
+      "status": "resolved",
+      "mentions": 2,
+      "entity_id": "cd88d3a2-b32c-5594-99eb-ea196470bf49"
+    },
+    {
+      "name": "SHIP-2049",
+      "type": "shipment",
+      "status": "resolved",
+      "mentions": 6,
+      "entity_id": "7d9cebec-1e5c-5813-a446-9a9525d8d7e4"
+    },
+    {
+      "name": "PHB-TT-20261002-4471",
+      "type": "transaction",
+      "status": "resolved",
+      "mentions": 1,
+      "entity_id": "b0c6c200-d222-5100-97ea-f96c68ed0268"
+    }
+  ],
+  "evidence_references": [
+    {
+      "page": 1,
+      "role": "conflicting",
+      "value": "USD 48,000.00",
+      "field_id": "e996b702-b72f-4a8d-94f4-ffdbac19477d",
+      "filename": "01_purchase_order.pdf",
+      "field_name": "total_amount",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "document_id": "5cad8964-9c74-41dd-8740-3f07ef7c3128"
+    },
+    {
+      "page": 1,
+      "role": "conflicting",
+      "value": "USD 48,000.00",
+      "field_id": "7a132571-a9e5-4fd0-bfa1-e7b9ec265243",
+      "filename": "02_commercial_invoice.pdf",
+      "field_name": "total_amount",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "document_id": "5272539d-fc74-44bf-923a-7b109e0dde41"
+    },
+    {
+      "page": 2,
+      "role": "conflicting",
+      "value": "USD 68,000.00",
+      "field_id": "880dfe37-baff-4600-a327-5e2caae5bdcd",
+      "filename": "03_customs_declaration.pdf",
+      "field_name": "total_amount",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "document_id": "ec85bffc-c9e4-4c3a-9449-8188749cb7c4"
+    },
+    {
+      "page": 1,
+      "role": "conflicting",
+      "value": "68,000.00",
+      "field_id": "0219a7af-950c-4987-8028-191de702b65b",
+      "filename": "04_insurance_certificate.pdf",
+      "field_name": "total_amount",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "document_id": "f09fabdb-347b-454c-b5e8-b2f6c5bca9ba"
+    },
+    {
+      "page": 1,
+      "role": "conflicting",
+      "value": "48,000.00",
+      "field_id": "88485c0d-9551-4d1a-81fb-ad8795ca61e7",
+      "filename": "05_payment_receipt.pdf",
+      "field_name": "total_amount",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "document_id": "0e7b0be9-528a-4b56-bcc3-d8b713f96d73"
+    }
+  ],
+  "extracted_information": [
+    {
+      "fields": [
+        {
+          "name": "buyer",
+          "page": 1,
+          "value": "ABC Imports Inc.",
+          "method": "llm",
+          "field_id": "21464769-39a3-4cab-856e-ac9bd5e8140f",
+          "confidence": "1.000"
+        },
+        {
+          "name": "buyer_address",
+          "page": 1,
+          "value": "1200 Commerce Way, Long Beach, CA 90802, USA",
+          "method": "llm",
+          "field_id": "144672e7-2bfe-496d-aa50-d72230b8b712",
+          "confidence": "1.000"
+        },
+        {
+          "name": "currency",
+          "page": 1,
+          "value": "USD",
+          "method": "llm",
+          "field_id": "1c068962-c7cb-4e74-82ec-750dcaf84e64",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_date",
+          "page": 1,
+          "value": "2 September 2026",
+          "method": "llm",
+          "field_id": "f4fe0bba-352f-45a3-b8b1-fa3e3632567d",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_number",
+          "page": 1,
+          "value": "PO-2026-0815",
+          "method": "llm",
+          "field_id": "63114eab-6d35-417f-80f2-2b46e8a12e1f",
+          "confidence": "1.000"
+        },
+        {
+          "name": "shipment_reference",
+          "page": 1,
+          "value": "SHIP-2049",
+          "method": "llm",
+          "field_id": "ebfa507b-6bdb-44e5-959e-2f2e9fd7ca0d",
+          "confidence": "1.000"
+        },
+        {
+          "name": "supplier",
+          "page": 1,
+          "value": "Global Trading Ltd",
+          "method": "llm",
+          "field_id": "72400c9b-7a35-4bf7-93e8-6c97e9c2e767",
+          "confidence": "1.000"
+        },
+        {
+          "name": "supplier_address",
+          "page": 1,
+          "value": "Unit 7, 88 Harbour Road, Kowloon, Hong Kong",
+          "method": "llm",
+          "field_id": "0e46062d-43c7-4ea0-9526-6deb9c85b2c0",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_amount",
+          "page": 1,
+          "value": "USD 48,000.00",
+          "method": "llm",
+          "field_id": "e996b702-b72f-4a8d-94f4-ffdbac19477d",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_quantity",
+          "page": 1,
+          "value": "1,000 units",
+          "method": "llm",
+          "field_id": "e8c13239-1522-47d1-94b3-c8a5d891127b",
+          "confidence": "1.000"
+        }
+      ],
+      "filename": "01_purchase_order.pdf",
+      "document_id": "5cad8964-9c74-41dd-8740-3f07ef7c3128"
+    },
+    {
+      "fields": [
+        {
+          "name": "buyer",
+          "page": 1,
+          "value": "ABC Imports Inc.",
+          "method": "llm",
+          "field_id": "821c2fb8-c0c4-4ded-a67b-a14c1913f351",
+          "confidence": "1.000"
+        },
+        {
+          "name": "currency",
+          "page": 1,
+          "value": "USD",
+          "method": "llm",
+          "field_id": "6643c210-05ee-46a4-8b8b-dd5b4e60ed81",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_date",
+          "page": 1,
+          "value": "20 September 2026",
+          "method": "llm",
+          "field_id": "92463bbe-96a9-4daa-93d3-b55b1b322b49",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_number",
+          "page": 1,
+          "value": "INV-2026-1042",
+          "method": "llm",
+          "field_id": "6fe3349e-286e-4528-9e2a-aebd630fec36",
+          "confidence": "1.000"
+        },
+        {
+          "name": "incoterms",
+          "page": 1,
+          "value": "FOB Hong Kong",
+          "method": "llm",
+          "field_id": "74cff603-fa57-4a81-b913-c12acc651011",
+          "confidence": "1.000"
+        },
+        {
+          "name": "po_reference",
+          "page": 1,
+          "value": "PO-2026-0815",
+          "method": "llm",
+          "field_id": "573b51b2-626b-4114-92d6-fa751fb34818",
+          "confidence": "1.000"
+        },
+        {
+          "name": "shipment_reference",
+          "page": 1,
+          "value": "SHIP-2049",
+          "method": "llm",
+          "field_id": "72141b01-7906-4775-91a8-7b79fb26c143",
+          "confidence": "1.000"
+        },
+        {
+          "name": "supplier",
+          "page": 1,
+          "value": "Global Trading Ltd",
+          "method": "llm",
+          "field_id": "2336f51e-f46d-4d09-9bd6-92157b7f181c",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_amount",
+          "page": 1,
+          "value": "USD 48,000.00",
+          "method": "llm",
+          "field_id": "7a132571-a9e5-4fd0-bfa1-e7b9ec265243",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_quantity",
+          "page": 1,
+          "value": "1,000 units",
+          "method": "llm",
+          "field_id": "8d50e853-93cc-49e6-a482-dcf8329768a2",
+          "confidence": "1.000"
+        }
+      ],
+      "filename": "02_commercial_invoice.pdf",
+      "document_id": "5272539d-fc74-44bf-923a-7b109e0dde41"
+    },
+    {
+      "fields": [
+        {
+          "name": "bill_of_lading_reference",
+          "page": 1,
+          "value": "OCLU-BL-2026-77310",
+          "method": "llm",
+          "field_id": "c809ea0e-9c97-4252-9b43-f942e8c83eed",
+          "confidence": "1.000"
+        },
+        {
+          "name": "buyer",
+          "page": 1,
+          "value": "ABC Imports Inc.",
+          "method": "llm",
+          "field_id": "873dd4ed-b92c-4efe-be57-fffd0a0062e0",
+          "confidence": "1.000"
+        },
+        {
+          "name": "currency",
+          "page": 2,
+          "value": "USD",
+          "method": "llm",
+          "field_id": "1e2d09a9-5b16-4912-bca0-14c4342eabe9",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_date",
+          "page": 1,
+          "value": "14 October 2026",
+          "method": "llm",
+          "field_id": "55f48259-26d0-454e-a545-b7d748b2e8dd",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_number",
+          "page": 1,
+          "value": "CD-2026-55871",
+          "method": "llm",
+          "field_id": "8a985d82-4fb9-4f82-8f05-6cdb068e5749",
+          "confidence": "1.000"
+        },
+        {
+          "name": "invoice_reference",
+          "page": 1,
+          "value": "INV-2026-1042",
+          "method": "llm",
+          "field_id": "b7044b6d-6553-41e8-b92d-94b93ee43cbf",
+          "confidence": "1.000"
+        },
+        {
+          "name": "shipment_reference",
+          "page": 1,
+          "value": "SHIP-2049",
+          "method": "llm",
+          "field_id": "2734d3b8-62e7-4d7f-8c7b-01e685e8b72d",
+          "confidence": "1.000"
+        },
+        {
+          "name": "supplier",
+          "page": 1,
+          "value": "GLOBAL TRADING LIMITED",
+          "method": "llm",
+          "field_id": "066d8f8f-dd28-4d62-a9e0-2e3a944976dd",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_amount",
+          "page": 2,
+          "value": "USD 68,000.00",
+          "method": "llm",
+          "field_id": "880dfe37-baff-4600-a327-5e2caae5bdcd",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_quantity",
+          "page": 1,
+          "value": "1,000 units",
+          "method": "llm",
+          "field_id": "fdc046fe-7df1-444d-9cae-3be48fa03ae6",
+          "confidence": "1.000"
+        },
+        {
+          "name": "valuation_basis",
+          "page": 2,
+          "value": "CIF Long Beach",
+          "method": "llm",
+          "field_id": "adddcf4e-9144-40dd-9598-98c40b402a65",
+          "confidence": "1.000"
+        }
+      ],
+      "filename": "03_customs_declaration.pdf",
+      "document_id": "ec85bffc-c9e4-4c3a-9449-8188749cb7c4"
+    },
+    {
+      "fields": [
+        {
+          "name": "buyer",
+          "page": 1,
+          "value": "ABC Imports Inc.",
+          "method": "llm",
+          "field_id": "0b74f593-742b-4b1e-8099-07fdb474ab12",
+          "confidence": "1.000"
+        },
+        {
+          "name": "currency",
+          "page": 1,
+          "value": "USD",
+          "method": "llm",
+          "field_id": "8c0df2f8-426f-4acb-8d8a-a352bebc3900",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_date",
+          "page": 1,
+          "value": "23 September 2026",
+          "method": "llm",
+          "field_id": "cd8eb9d0-9fe4-47b5-aa29-fd6766e042ad",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_number",
+          "page": 1,
+          "value": "MMI-CERT-2026-3301",
+          "method": "llm",
+          "field_id": "ff947d1f-a7cf-4dfe-936e-95148fda7bdd",
+          "confidence": "1.000"
+        },
+        {
+          "name": "goods",
+          "page": 1,
+          "value": "1,000 units LED Panel Light 600x600 mm, 40 W",
+          "method": "llm",
+          "field_id": "d1badc29-c8d1-40e3-88ad-85b4dca67191",
+          "confidence": "1.000"
+        },
+        {
+          "name": "insurer",
+          "page": 1,
+          "value": "Meridian Marine Insurance Co.",
+          "method": "llm",
+          "field_id": "ae73abb2-aa59-4c48-b694-3f705ad6e847",
+          "confidence": "1.000"
+        },
+        {
+          "name": "invoice_reference",
+          "page": 1,
+          "value": "INV-2026-1042",
+          "method": "llm",
+          "field_id": "0ef8dfe9-883a-46b1-952a-be652b711e79",
+          "confidence": "1.000"
+        },
+        {
+          "name": "shipment_reference",
+          "page": 1,
+          "value": "SHIP-2049",
+          "method": "llm",
+          "field_id": "8558063b-05c1-412a-8c0f-bc15b3a8ccde",
+          "confidence": "1.000"
+        },
+        {
+          "name": "supplier",
+          "page": 1,
+          "value": "Global Trading Ltd",
+          "method": "llm",
+          "field_id": "78c52eb9-1f33-4227-8aa2-72ab7a8ad819",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_amount",
+          "page": 1,
+          "value": "68,000.00",
+          "method": "llm",
+          "field_id": "0219a7af-950c-4987-8028-191de702b65b",
+          "confidence": "1.000"
+        },
+        {
+          "name": "vessel",
+          "page": 1,
+          "value": "MV Northern Star, voyage 214E",
+          "method": "llm",
+          "field_id": "e1f04665-cf42-4512-89a2-cb69bb382d95",
+          "confidence": "1.000"
+        }
+      ],
+      "filename": "04_insurance_certificate.pdf",
+      "document_id": "f09fabdb-347b-454c-b5e8-b2f6c5bca9ba"
+    },
+    {
+      "fields": [
+        {
+          "name": "bank",
+          "page": 1,
+          "value": "Pacific Harbour Bank",
+          "method": "llm",
+          "field_id": "d418e467-a66d-4f6f-8b1a-634a213af66b",
+          "confidence": "1.000"
+        },
+        {
+          "name": "bank_reference",
+          "page": 1,
+          "value": "PHB-TT-20261002-4471",
+          "method": "llm",
+          "field_id": "1d2dbae2-574a-41ce-a756-3ae7f0333e14",
+          "confidence": "1.000"
+        },
+        {
+          "name": "buyer",
+          "page": 1,
+          "value": "ABC Imports Inc.",
+          "method": "llm",
+          "field_id": "e96ac9b9-6929-4e9b-9ff7-cef518ab69b6",
+          "confidence": "1.000"
+        },
+        {
+          "name": "currency",
+          "page": 1,
+          "value": "USD",
+          "method": "llm",
+          "field_id": "5bfef0d6-5e7c-41d3-9eaa-7fed519eb141",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_date",
+          "page": 1,
+          "value": "2 October 2026",
+          "method": "llm",
+          "field_id": "5472eb0a-eb33-4610-bb00-fb2c68d40c67",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_number",
+          "page": 1,
+          "value": "RCPT-2026-0907",
+          "method": "llm",
+          "field_id": "daff06df-bcc6-4f40-9823-59e2ba78e4e0",
+          "confidence": "1.000"
+        },
+        {
+          "name": "invoice_reference",
+          "page": 1,
+          "value": "INV-2026-1042",
+          "method": "llm",
+          "field_id": "0558ebe5-c7ac-4441-8ef8-d52ddc928a37",
+          "confidence": "1.000"
+        },
+        {
+          "name": "supplier",
+          "page": 1,
+          "value": "Global Trading Ltd",
+          "method": "llm",
+          "field_id": "89fb850f-ed54-4a7d-bb4c-599c8b408593",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_amount",
+          "page": 1,
+          "value": "48,000.00",
+          "method": "llm",
+          "field_id": "88485c0d-9551-4d1a-81fb-ad8795ca61e7",
+          "confidence": "1.000"
+        }
+      ],
+      "filename": "05_payment_receipt.pdf",
+      "document_id": "0e7b0be9-528a-4b56-bcc3-d8b713f96d73"
+    },
+    {
+      "fields": [
+        {
+          "name": "buyer",
+          "page": 1,
+          "value": "ABC Imports Inc.",
+          "method": "llm",
+          "field_id": "f0fe6e4a-825f-44b1-80eb-e31a9c83f84b",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_date",
+          "page": 1,
+          "value": "21 September 2026",
+          "method": "llm",
+          "field_id": "cd4e5065-188f-4efa-bbbf-fd8594cb3f33",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_number",
+          "page": 1,
+          "value": "PL-2026-1042",
+          "method": "llm",
+          "field_id": "ddb990e5-216a-4865-b7c3-e6bdd883a5e6",
+          "confidence": "1.000"
+        },
+        {
+          "name": "gross_weight",
+          "page": 1,
+          "value": "1,250 kg",
+          "method": "llm",
+          "field_id": "b31b9687-0507-4dca-82ef-587f23cad3df",
+          "confidence": "1.000"
+        },
+        {
+          "name": "invoice_reference",
+          "page": 1,
+          "value": "INV-2026-1042",
+          "method": "llm",
+          "field_id": "08471fef-ac8b-4e3a-9d17-7df364ac9395",
+          "confidence": "1.000"
+        },
+        {
+          "name": "shipment_reference",
+          "page": 1,
+          "value": "SHIP-2049",
+          "method": "llm",
+          "field_id": "934925e5-41c4-47eb-8778-9edf0e33f664",
+          "confidence": "1.000"
+        },
+        {
+          "name": "supplier",
+          "page": 1,
+          "value": "Global Trading Ltd",
+          "method": "llm",
+          "field_id": "39b82d7a-2c78-4afe-ac00-af351488538e",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_cartons",
+          "page": 1,
+          "value": "100",
+          "method": "llm",
+          "field_id": "0a67c372-8a96-4caa-90f3-35683b44b0eb",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_quantity",
+          "page": 1,
+          "value": "1,000 units",
+          "method": "llm",
+          "field_id": "ec19d005-eda8-422d-8ffa-5008312a7920",
+          "confidence": "1.000"
+        }
+      ],
+      "filename": "06_packing_list.pdf",
+      "document_id": "59a96839-e761-480a-8cae-9f00833dd7c6"
+    },
+    {
+      "fields": [
+        {
+          "name": "buyer",
+          "page": 1,
+          "value": "ABC Imports Inc.",
+          "method": "llm",
+          "field_id": "72829b60-755f-481b-97cf-e0847b196f66",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_date",
+          "page": 1,
+          "value": "24 September 2026",
+          "method": "llm",
+          "field_id": "74c4044f-9f69-430b-9d99-c2d52ac61705",
+          "confidence": "1.000"
+        },
+        {
+          "name": "document_number",
+          "page": 1,
+          "value": "OCLU-BL-2026-77310",
+          "method": "llm",
+          "field_id": "7cf87f7f-c475-4edb-af8b-5047bf4d98d6",
+          "confidence": "1.000"
+        },
+        {
+          "name": "goods",
+          "page": 1,
+          "value": "LED Panel Light 600x600 mm, 40 W, 100 cartons",
+          "method": "llm",
+          "field_id": "e44a648d-7300-4a77-9a42-3b106530b83c",
+          "confidence": "1.000"
+        },
+        {
+          "name": "port_of_discharge",
+          "page": 1,
+          "value": "Long Beach, USA",
+          "method": "llm",
+          "field_id": "b191115f-653e-4c02-ac80-ce44b04fc805",
+          "confidence": "1.000"
+        },
+        {
+          "name": "port_of_loading",
+          "page": 1,
+          "value": "Hong Kong",
+          "method": "llm",
+          "field_id": "497c853e-cbf1-474a-88de-766d92153b90",
+          "confidence": "1.000"
+        },
+        {
+          "name": "shipment_reference",
+          "page": 1,
+          "value": "SHIP-2049",
+          "method": "llm",
+          "field_id": "989c1387-145e-410d-a675-f76d4e2b26ce",
+          "confidence": "1.000"
+        },
+        {
+          "name": "supplier",
+          "page": 1,
+          "value": "Global Trading Ltd",
+          "method": "llm",
+          "field_id": "5078a69b-dfab-46cb-8ada-6d87ea4ec05d",
+          "confidence": "1.000"
+        },
+        {
+          "name": "total_quantity",
+          "page": 1,
+          "value": "1,000 units",
+          "method": "llm",
+          "field_id": "eaef02ed-28ca-451f-8f37-deaebba92eaa",
+          "confidence": "1.000"
+        },
+        {
+          "name": "vessel",
+          "page": 1,
+          "value": "MV Northern Star, voyage 214E",
+          "method": "llm",
+          "field_id": "1450a99c-9638-4f6e-83ff-35190736ef2e",
+          "confidence": "1.000"
+        }
+      ],
+      "filename": "07_bill_of_lading.pdf",
+      "document_id": "7eb08ad8-f1a1-409d-a593-a7e55bcf04ba"
+    }
+  ],
+  "forensic_observations": [],
+  "relationship_analysis": [
+    {
+      "type": "ASSOCIATED_WITH",
+      "source": "03_customs_declaration.pdf",
+      "target": "Global Trading Ltd",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "5aa01ad3-3a96-5be4-9348-35b6a277e1c4"
+    },
+    {
+      "type": "ASSOCIATED_WITH",
+      "source": "07_bill_of_lading.pdf",
+      "target": "1,000 units LED Panel Light 600x600 mm, 40 W",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "629dabb0-3aa4-55e5-b4d6-7a28a105a92a"
+    },
+    {
+      "type": "ASSOCIATED_WITH",
+      "source": "07_bill_of_lading.pdf",
+      "target": "Global Trading Ltd",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "664be9a9-6e59-5d38-b7cd-04e8a522fe40"
+    },
+    {
+      "type": "ASSOCIATED_WITH",
+      "source": "04_insurance_certificate.pdf",
+      "target": "1,000 units LED Panel Light 600x600 mm, 40 W",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "66986f6c-b0ce-5b97-bef5-c5791c3af136"
+    },
+    {
+      "type": "ASSOCIATED_WITH",
+      "source": "05_payment_receipt.pdf",
+      "target": "Pacific Harbour Bank",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "6a74472a-417a-5cfa-a745-05ec82592d40"
+    },
+    {
+      "type": "ASSOCIATED_WITH",
+      "source": "05_payment_receipt.pdf",
+      "target": "Global Trading Ltd",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "92f1f2d5-a95d-56a0-9039-2ef62457ec8c"
+    },
+    {
+      "type": "ASSOCIATED_WITH",
+      "source": "04_insurance_certificate.pdf",
+      "target": "Global Trading Ltd",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "c292d41c-c09f-59d9-aa0c-6f55689a0e5d"
+    },
+    {
+      "type": "ASSOCIATED_WITH",
+      "source": "07_bill_of_lading.pdf",
+      "target": "ABC Imports Inc.",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "dd181616-f4f8-5c1b-8ef9-538edada6c96"
+    },
+    {
+      "type": "BELONGS_TO",
+      "source": "Unit 7, 88 Harbour Road, Kowloon, Hong Kong",
+      "target": "Global Trading Ltd",
+      "finding_id": null,
+      "evidence_count": 2,
+      "relationship_id": "6315da94-5dc5-5ca9-b9ba-ae6fec800e13"
+    },
+    {
+      "type": "BELONGS_TO",
+      "source": "1200 Commerce Way, Long Beach, CA 90802, USA",
+      "target": "ABC Imports Inc.",
+      "finding_id": null,
+      "evidence_count": 2,
+      "relationship_id": "c6e82df6-2de4-55ad-833a-5a5260b21a64"
+    },
+    {
+      "type": "CONTRADICTS",
+      "source": "02_commercial_invoice.pdf",
+      "target": "04_insurance_certificate.pdf",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "evidence_count": 2,
+      "relationship_id": "0dbcb01b-07e2-5471-bc74-93de7ab3cf87"
+    },
+    {
+      "type": "CONTRADICTS",
+      "source": "05_payment_receipt.pdf",
+      "target": "03_customs_declaration.pdf",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "evidence_count": 2,
+      "relationship_id": "487f5889-717a-54fc-a48f-86a2cbbec011"
+    },
+    {
+      "type": "CONTRADICTS",
+      "source": "01_purchase_order.pdf",
+      "target": "04_insurance_certificate.pdf",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "evidence_count": 2,
+      "relationship_id": "78699958-bd28-50de-96c0-d28bc6433c8b"
+    },
+    {
+      "type": "CONTRADICTS",
+      "source": "01_purchase_order.pdf",
+      "target": "03_customs_declaration.pdf",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "evidence_count": 2,
+      "relationship_id": "7c83217f-7c01-5448-bc01-601d8a084796"
+    },
+    {
+      "type": "CONTRADICTS",
+      "source": "02_commercial_invoice.pdf",
+      "target": "03_customs_declaration.pdf",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "evidence_count": 2,
+      "relationship_id": "882c9d67-6b24-531a-8b8c-5dfa5f7385c3"
+    },
+    {
+      "type": "CONTRADICTS",
+      "source": "05_payment_receipt.pdf",
+      "target": "04_insurance_certificate.pdf",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "evidence_count": 2,
+      "relationship_id": "f5a9752a-db99-5c40-a0df-b36827400622"
+    },
+    {
+      "type": "ISSUED_BY",
+      "source": "06_packing_list.pdf",
+      "target": "Global Trading Ltd",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "04617f0e-df70-5217-ad6e-a95365bff04e"
+    },
+    {
+      "type": "ISSUED_BY",
+      "source": "02_commercial_invoice.pdf",
+      "target": "Global Trading Ltd",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "0c507d31-b5d8-56bc-895f-d34a4c4b240c"
+    },
+    {
+      "type": "ISSUED_BY",
+      "source": "04_insurance_certificate.pdf",
+      "target": "Meridian Marine Insurance Co.",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "262e85c3-57fb-56b4-a981-cb2c87d10490"
+    },
+    {
+      "type": "ISSUED_BY",
+      "source": "03_customs_declaration.pdf",
+      "target": "ABC Imports Inc.",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "50cd330e-258e-5d80-8a5e-94d1574c0650"
+    },
+    {
+      "type": "ISSUED_BY",
+      "source": "01_purchase_order.pdf",
+      "target": "ABC Imports Inc.",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "dae715db-d288-5670-8038-f35b8aa31c16"
+    },
+    {
+      "type": "ISSUED_TO",
+      "source": "06_packing_list.pdf",
+      "target": "ABC Imports Inc.",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "144d1a73-df4e-5886-9ce2-f0fdcdddbba1"
+    },
+    {
+      "type": "ISSUED_TO",
+      "source": "02_commercial_invoice.pdf",
+      "target": "ABC Imports Inc.",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "35199fa2-968b-50f7-a548-5f9271a4634b"
+    },
+    {
+      "type": "ISSUED_TO",
+      "source": "01_purchase_order.pdf",
+      "target": "Global Trading Ltd",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "8b2049b3-e35e-5732-9702-23c40ef84121"
+    },
+    {
+      "type": "ISSUED_TO",
+      "source": "04_insurance_certificate.pdf",
+      "target": "ABC Imports Inc.",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "e62866ad-d36c-585f-8fc9-a836458827ba"
+    },
+    {
+      "type": "PAID_BY",
+      "source": "05_payment_receipt.pdf",
+      "target": "ABC Imports Inc.",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "48e6c843-aaf3-50cc-92c0-b09d5151d0ba"
+    },
+    {
+      "type": "REFERENCES",
+      "source": "05_payment_receipt.pdf",
+      "target": "PHB-TT-20261002-4471",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "02162f5b-d7b6-561e-850a-3269ba4ad5f9"
+    },
+    {
+      "type": "REFERENCES",
+      "source": "04_insurance_certificate.pdf",
+      "target": "02_commercial_invoice.pdf",
+      "finding_id": null,
+      "evidence_count": 2,
+      "relationship_id": "97e06e87-0e55-5934-87d9-2a91f68dbb4d"
+    },
+    {
+      "type": "REFERENCES",
+      "source": "05_payment_receipt.pdf",
+      "target": "02_commercial_invoice.pdf",
+      "finding_id": null,
+      "evidence_count": 2,
+      "relationship_id": "ccc459ae-3cb1-52cd-9aeb-71371696c3a1"
+    },
+    {
+      "type": "REFERENCES",
+      "source": "06_packing_list.pdf",
+      "target": "02_commercial_invoice.pdf",
+      "finding_id": null,
+      "evidence_count": 2,
+      "relationship_id": "ce6c1a22-f846-5d1b-87ec-e158cb9f9987"
+    },
+    {
+      "type": "REFERENCES",
+      "source": "02_commercial_invoice.pdf",
+      "target": "01_purchase_order.pdf",
+      "finding_id": null,
+      "evidence_count": 2,
+      "relationship_id": "d1b363b4-4405-554c-9fa1-90ec7c29a035"
+    },
+    {
+      "type": "REFERENCES",
+      "source": "03_customs_declaration.pdf",
+      "target": "07_bill_of_lading.pdf",
+      "finding_id": null,
+      "evidence_count": 2,
+      "relationship_id": "e45af2ef-2ee1-5eb8-92e0-6fa23c274203"
+    },
+    {
+      "type": "REFERENCES",
+      "source": "03_customs_declaration.pdf",
+      "target": "02_commercial_invoice.pdf",
+      "finding_id": null,
+      "evidence_count": 2,
+      "relationship_id": "eb803220-f15f-5ceb-aa15-8417e1d05ab3"
+    },
+    {
+      "type": "SHIPPED_UNDER",
+      "source": "07_bill_of_lading.pdf",
+      "target": "SHIP-2049",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "2693f160-f77f-5a38-97b7-cff811e5d5df"
+    },
+    {
+      "type": "SHIPPED_UNDER",
+      "source": "06_packing_list.pdf",
+      "target": "SHIP-2049",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "430aa14e-53be-5b36-bf34-e6113584a3ac"
+    },
+    {
+      "type": "SHIPPED_UNDER",
+      "source": "01_purchase_order.pdf",
+      "target": "SHIP-2049",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "7e7c5fb9-9ccb-5fc2-aa06-ece7f5a9898b"
+    },
+    {
+      "type": "SHIPPED_UNDER",
+      "source": "03_customs_declaration.pdf",
+      "target": "SHIP-2049",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "7e7e2974-37fa-548c-bba5-c10213fed3ed"
+    },
+    {
+      "type": "SHIPPED_UNDER",
+      "source": "02_commercial_invoice.pdf",
+      "target": "SHIP-2049",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "99851c48-5769-5001-a0ab-65d0a7ece2e3"
+    },
+    {
+      "type": "SHIPPED_UNDER",
+      "source": "04_insurance_certificate.pdf",
+      "target": "SHIP-2049",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "d3347dea-7f8f-50ad-b617-1577b15239fa"
+    },
+    {
+      "type": "SUPPORTS",
+      "source": "01_purchase_order.pdf",
+      "target": "Declared totals differ by USD 20,000.00",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "4743f5d9-ec06-5393-af77-4958ffbe26e3"
+    },
+    {
+      "type": "SUPPORTS",
+      "source": "03_customs_declaration.pdf",
+      "target": "Declared totals differ by USD 20,000.00",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "4c61d711-d98d-5cb3-8a31-14a6b94dac04"
+    },
+    {
+      "type": "SUPPORTS",
+      "source": "05_payment_receipt.pdf",
+      "target": "Declared totals differ by USD 20,000.00",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "89733904-400a-5979-b312-ada8504c306e"
+    },
+    {
+      "type": "SUPPORTS",
+      "source": "04_insurance_certificate.pdf",
+      "target": "Declared totals differ by USD 20,000.00",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "8d4190ff-47cd-5206-bdae-1d73b9a74448"
+    },
+    {
+      "type": "SUPPORTS",
+      "source": "02_commercial_invoice.pdf",
+      "target": "Declared totals differ by USD 20,000.00",
+      "finding_id": null,
+      "evidence_count": 1,
+      "relationship_id": "dececac9-14d8-59c3-915e-c4631221681a"
+    }
+  ],
+  "alternative_explanations": [],
+  "identified_discrepancies": [
+    {
+      "type": "financial_discrepancy",
+      "title": "Declared totals differ by USD 20,000.00",
+      "evidence": [
+        {
+          "page": 1,
+          "role": "conflicting",
+          "value": "USD 48,000.00",
+          "field_id": "e996b702-b72f-4a8d-94f4-ffdbac19477d",
+          "filename": "01_purchase_order.pdf",
+          "field_name": "total_amount",
+          "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+          "document_id": "5cad8964-9c74-41dd-8740-3f07ef7c3128"
+        },
+        {
+          "page": 1,
+          "role": "conflicting",
+          "value": "USD 48,000.00",
+          "field_id": "7a132571-a9e5-4fd0-bfa1-e7b9ec265243",
+          "filename": "02_commercial_invoice.pdf",
+          "field_name": "total_amount",
+          "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+          "document_id": "5272539d-fc74-44bf-923a-7b109e0dde41"
+        },
+        {
+          "page": 2,
+          "role": "conflicting",
+          "value": "USD 68,000.00",
+          "field_id": "880dfe37-baff-4600-a327-5e2caae5bdcd",
+          "filename": "03_customs_declaration.pdf",
+          "field_name": "total_amount",
+          "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+          "document_id": "ec85bffc-c9e4-4c3a-9449-8188749cb7c4"
+        },
+        {
+          "page": 1,
+          "role": "conflicting",
+          "value": "68,000.00",
+          "field_id": "0219a7af-950c-4987-8028-191de702b65b",
+          "filename": "04_insurance_certificate.pdf",
+          "field_name": "total_amount",
+          "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+          "document_id": "f09fabdb-347b-454c-b5e8-b2f6c5bca9ba"
+        },
+        {
+          "page": 1,
+          "role": "conflicting",
+          "value": "48,000.00",
+          "field_id": "88485c0d-9551-4d1a-81fb-ad8795ca61e7",
+          "filename": "05_payment_receipt.pdf",
+          "field_name": "total_amount",
+          "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+          "document_id": "0e7b0be9-528a-4b56-bcc3-d8b713f96d73"
+        }
+      ],
+      "priority": "high",
+      "severity": "high",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00",
+      "explanation": "5 documents state a total in USD, and they do not agree.\nUSD 48,000.00: Purchase order (01_purchase_order.pdf, page 1), order total; Commercial invoice (02_commercial_invoice.pdf, page 1), invoice total; Payment receipt (05_payment_receipt.pdf, page 1), amount paid\nUSD 68,000.00: Customs declaration (03_customs_declaration.pdf, page 2), declared customs value; Insurance certificate (04_insurance_certificate.pdf, page 1), insured value\nThe difference between the highest and lowest value is USD 20,000.00.",
+      "limitations": [
+        "Commercial invoice (02_commercial_invoice.pdf, page 1) states Incoterms \"FOB Hong Kong\".",
+        "Customs declaration (03_customs_declaration.pdf, page 2) states valuation basis \"CIF Long Beach\".",
+        "Values stated on different delivery or valuation terms (for example FOB and CIF) are not directly comparable: a CIF value includes freight and insurance.",
+        "An insured value can be set above the invoice value by the policy terms, so it is not by itself a declaration of the goods' price."
+      ],
+      "review_label": "Not yet reviewed",
+      "anomaly_score": "0.294",
+      "review_status": "new",
+      "evidence_confidence": "1.000"
+    }
+  ],
+  "recommended_human_review": [
+    {
+      "text": "Review: Declared totals differ by USD 20,000.00",
+      "finding_id": "a26cb752-46f0-4854-9c86-a424fb2b1a00"
+    }
+  ],
+  "missing_supporting_documents": []
+}

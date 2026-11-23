@@ -1,0 +1,93 @@
+{
+  "model": "qwen2.5vl:7b",
+  "note": "Recorded from a local Ollama qwen2.5vl:7b on 2026-11-23 comparing sample-data/comparison/original_invoice.pdf with test_altered.pdf (3 region checks, then a page scan of page 1).",
+  "responses": [
+    {
+      "content": {
+        "visible_difference": true,
+        "difference_type": "number",
+        "original_text": "48,000.00",
+        "test_text": "68,000.00",
+        "description": "The number has changed from 48,000.00 to 68,000.00.",
+        "box": [
+          205,
+          308,
+          974,
+          658
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 2338,
+        "completion_tokens": 98
+      }
+    },
+    {
+      "content": {
+        "visible_difference": true,
+        "difference_type": "number",
+        "original_text": "5407",
+        "test_text": "9907",
+        "description": "The number 5407 in the original document is replaced with 9907 in the TEST document.",
+        "box": [
+          300,
+          388,
+          665,
+          560
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 2285,
+        "completion_tokens": 85
+      }
+    },
+    {
+      "content": {
+        "visible_difference": true,
+        "difference_type": "number",
+        "original_text": "3",
+        "test_text": "8",
+        "description": "The number '3' in the original document is replaced with '8' in the TEST document.",
+        "box": [
+          300,
+          580,
+          435,
+          815
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 2397,
+        "completion_tokens": 75
+      }
+    },
+    {
+      "content": {
+        "regions": [
+          {
+            "box": [
+              253,
+              182,
+              343,
+              198
+            ],
+            "description": "The date changed from '3 October 2026' to '8 October 2026'.",
+            "difference_type": "date"
+          },
+          {
+            "box": [
+              253,
+              316,
+              343,
+              332
+            ],
+            "description": "The invoice total changed from 'USD 48,000.00' to 'USD 68,000.00'.",
+            "difference_type": "number"
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 2332,
+        "completion_tokens": 130
+      }
+    }
+  ]
+}
