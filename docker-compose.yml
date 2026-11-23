@@ -1,0 +1,210 @@
+# VERITAS AI: development stack. Production overrides: docker-compose.prod.yml
+# Usage: copy .env.example to .env, replace CHANGE_ME values, then: docker compose up -d --build
+name: veritas
+
+x-backend-env: &backend-env
+  VERITAS_ENV: ${VERITAS_ENV:-development}
+  VERITAS_LOG_LEVEL: ${VERITAS_LOG_LEVEL:-INFO}
+  VERITAS_JWT_SECRET: ${VERITAS_JWT_SECRET:?set VERITAS_JWT_SECRET in .env}
+  VERITAS_ACCESS_TOKEN_MINUTES: ${VERITAS_ACCESS_TOKEN_MINUTES:-15}
+  VERITAS_REFRESH_TOKEN_DAYS: ${VERITAS_REFRESH_TOKEN_DAYS:-7}
+  VERITAS_LOGIN_RATE_LIMIT_PER_MINUTE: ${VERITAS_LOGIN_RATE_LIMIT_PER_MINUTE:-10}
+  VERITAS_CORS_ORIGINS: ${VERITAS_CORS_ORIGINS:-http://localhost:8080}
+  VERITAS_APP_DB_USER: ${VERITAS_APP_DB_USER:-veritas_app}
+  VERITAS_RO_DB_USER: ${VERITAS_RO_DB_USER:-veritas_readonly}
+  VERITAS_DATABASE_URL: postgresql+asyncpg://${VERITAS_APP_DB_USER:-veritas_app}:${VERITAS_APP_DB_PASSWORD:?set VERITAS_APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas}
+  VERITAS_REDIS_URL: redis://redis:6379/0
+  VERITAS_CELERY_BROKER_URL: redis://redis:6379/1
+  VERITAS_CELERY_RESULT_BACKEND: redis://redis:6379/2
+  VERITAS_STORAGE_ENDPOINT: objectstore:8333
+  VERITAS_STORAGE_ACCESS_KEY: ${VERITAS_STORAGE_ACCESS_KEY:-veritas}
+  VERITAS_STORAGE_SECRET_KEY: ${VERITAS_STORAGE_SECRET_KEY:?set VERITAS_STORAGE_SECRET_KEY}
+  VERITAS_STORAGE_BUCKET: ${VERITAS_STORAGE_BUCKET:-veritas-documents}
+  VERITAS_LLM_BASE_URL: ${VERITAS_LLM_BASE_URL:-}
+  VERITAS_LLM_API_KEY: ${VERITAS_LLM_API_KEY:-}
+  VERITAS_LLM_MODEL: ${VERITAS_LLM_MODEL:-}
+  VERITAS_VLM_MODEL: ${VERITAS_VLM_MODEL:-}
+  VERITAS_LLM_FALLBACK_MODELS: ${VERITAS_LLM_FALLBACK_MODELS:-}
+  VERITAS_LLM_TIMEOUT_SECONDS: ${VERITAS_LLM_TIMEOUT_SECONDS:-60}
+  VERITAS_AMOUNT_TOLERANCE: ${VERITAS_AMOUNT_TOLERANCE:-0.005}
+  VERITAS_NAME_SIMILARITY_THRESHOLD: ${VERITAS_NAME_SIMILARITY_THRESHOLD:-0.85}
+  VERITAS_MAX_UPLOAD_MB: ${VERITAS_MAX_UPLOAD_MB:-25}
+  VERITAS_NEO4J_URI: bolt://neo4j:7687
+  VERITAS_NEO4J_USER: neo4j
+  VERITAS_NEO4J_PASSWORD: ${VERITAS_NEO4J_PASSWORD:?set VERITAS_NEO4J_PASSWORD}
+  VERITAS_NEO4J_NAMESPACE: ${VERITAS_NEO4J_NAMESPACE:-default}
+  VERITAS_ENTITY_MERGE_THRESHOLD: ${VERITAS_ENTITY_MERGE_THRESHOLD:-0.95}
+  VERITAS_OUTBOX_MAX_ATTEMPTS: ${VERITAS_OUTBOX_MAX_ATTEMPTS:-5}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-veritas}
+      POSTGRES_USER: ${POSTGRES_USER:-veritas_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      VERITAS_APP_DB_USER: ${VERITAS_APP_DB_USER:-veritas_app}
+      VERITAS_APP_DB_PASSWORD: ${VERITAS_APP_DB_PASSWORD:?set VERITAS_APP_DB_PASSWORD}
+      VERITAS_RO_DB_USER: ${VERITAS_RO_DB_USER:-veritas_readonly}
+      VERITAS_RO_DB_PASSWORD: ${VERITAS_RO_DB_PASSWORD:?set VERITAS_RO_DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5432:5432"   # development only (tests and the read-only MCP server)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    ports:
+      - "127.0.0.1:6379:6379"   # development only
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  objectstore:
+    # SeaweedFS with its S3 API (MinIO's community images were discontinued in 2025-2026).
+    # The S3 identity is generated from .env at start; nothing secret is stored in the image.
+    image: chrislusf/seaweedfs:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        printf '{"identities":[{"name":"veritas","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}'
+        "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json &&
+        exec weed server -dir=/data -s3 -s3.port=8333 -s3.config=/tmp/s3.json -volume.max=0 -master.volumeSizeLimitMB=1024
+    environment:
+      S3_ACCESS_KEY: ${VERITAS_STORAGE_ACCESS_KEY:-veritas}
+      S3_SECRET_KEY: ${VERITAS_STORAGE_SECRET_KEY:?set VERITAS_STORAGE_SECRET_KEY}
+    volumes:
+      - objectdata:/data
+    ports:
+      - "127.0.0.1:9000:8333"   # development only (integration tests)
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8333/healthz || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  neo4j:
+    # Derived evidence graph. Postgres stays the source of truth; the graph is rebuilt from
+    # it through the outbox, and the API falls back to Postgres when this service is down.
+    image: neo4j:5.26-community
+    environment:
+      NEO4J_AUTH: neo4j/${VERITAS_NEO4J_PASSWORD:?set VERITAS_NEO4J_PASSWORD}
+      NEO4J_server_memory_heap_initial__size: 256m
+      NEO4J_server_memory_heap_max__size: 512m
+      NEO4J_server_memory_pagecache_size: 256m
+      NEO4J_dbms_usage__report_enabled: "false"
+    volumes:
+      - graphdata:/data
+    ports:
+      - "127.0.0.1:7687:7687"   # development only (integration tests)
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: ../infrastructure/docker/backend.Dockerfile
+      target: api
+    image: veritas-backend:dev
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      <<: *backend-env
+      VERITAS_MIGRATION_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-veritas_owner}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    image: veritas-backend:dev
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+    environment: *backend-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      objectstore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/system/health', timeout=3).status == 200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: ../infrastructure/docker/backend.Dockerfile
+      target: worker
+    image: veritas-worker:dev
+    # Warm the OCR and layout models (cached in the models volume), then start the worker.
+    # -B runs the beat scheduler inside this worker (graph outbox drain and reconcile); with
+    # a single worker no separate scheduler service is needed.
+    command: ["sh", "-c", "python scripts/warm_models.py; exec celery -A app.workers.celery_app worker -B --schedule /tmp/celerybeat-schedule --loglevel=INFO --concurrency=${VERITAS_WORKER_CONCURRENCY:-1}"]
+    volumes:
+      - models:/models
+    # Lets the worker reach a model server on the host (for example Ollama on port 11434).
+    # Docker Desktop resolves this name already; the mapping makes Linux behave the same.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      <<: *backend-env
+      VERITAS_DB_NULL_POOL: "true"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      objectstore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.workers.celery_app inspect ping -d celery@$$HOSTNAME --timeout 5 | grep -q pong"]
+      interval: 20s
+      timeout: 15s
+      retries: 30
+      start_period: 600s   # first start downloads the OCR and layout models
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./frontend
+      dockerfile: ../infrastructure/docker/frontend.Dockerfile   # config: frontend/nginx.conf
+    image: veritas-frontend:dev
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  objectdata:
+  models:
+  graphdata:

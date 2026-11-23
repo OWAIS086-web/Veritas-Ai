@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Database migration review",
+      "trigger": "PostFileSave",
+      "description": "When SQLAlchemy models or Alembic migrations change, run alembic check to detect drift between the models and the migrated schema. Needs the Postgres container running.",
+      "matcher": "backend[\\\\/](app[\\\\/]models|migrations)[\\\\/].*\\.py$",
+      "action": {
+        "type": "command",
+        "command": "uv run --directory backend alembic check",
+        "timeout": 60
+      }
+    }
+  ]
+}

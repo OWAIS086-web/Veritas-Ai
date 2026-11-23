@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Security review trigger",
+      "trigger": "PostFileSave",
+      "description": "When authentication, permissions, tenancy, storage or upload code changes, prompt a review against the security steering.",
+      "matcher": "backend[\\\\/]app[\\\\/](core[\\\\/](security|permissions|signing|db)\\.py|api[\\\\/](deps\\.py|v1[\\\\/]auth\\.py)|services[\\\\/](identity|ingestion)[\\\\/].*\\.py|integrations[\\\\/]storage[\\\\/].*\\.py)$",
+      "action": {
+        "type": "agent",
+        "prompt": "Security-sensitive code changed (auth, permissions, tenancy, storage or upload). Review the change against .kiro/steering/security.md before continuing: JWT algorithm pinned and expiry enforced; refresh rotation and reuse revocation intact; every tenant query runs in a tenant session (SET LOCAL app.current_org via bound parameter) and filters organization_id; cross-org access returns 404; permissions come from require_permission, not inline role checks; uploads use magic-byte detection, size and ZIP limits and traversal rejection; storage keys are server-generated and org-prefixed and originals are never overwritten; no secrets, tokens or document text are logged; no SQL is built with string formatting. Report any issue with file:line and fix critical or high issues now. For a full independent review, delegate to the security-reviewer agent."
+      }
+    }
+  ]
+}

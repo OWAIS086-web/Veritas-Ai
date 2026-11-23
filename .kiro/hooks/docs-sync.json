@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Documentation synchronization",
+      "trigger": "Stop",
+      "description": "When the agent finishes a turn, check whether public API or architecture changes need documentation updates.",
+      "action": {
+        "type": "agent",
+        "prompt": "Before finishing: if this turn changed public API routes or schemas (backend/app/api, backend/app/schemas), module boundaries, data stores, Docker services or environment variables, list which of these need updating and update them: backend/openapi.json (regenerate with scripts/export_openapi.py), docs/api.md, docs/architecture.md, docs/database.md, docs/deployment.md, .env.example, and docs/implementation-progress.md (status, files, real test results only). If nothing relevant changed, say so in one line."
+      }
+    }
+  ]
+}

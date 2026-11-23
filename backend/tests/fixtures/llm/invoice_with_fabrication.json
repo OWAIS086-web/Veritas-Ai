@@ -1,0 +1,22 @@
+{
+  "description": "Recorded answer shape for the commercial invoice. 'po_reference' and the cited page of 'buyer' are deliberately wrong (a fabricated value and a non-existent page), to test that unsupported claims are rejected.",
+  "model": "recorded-qwen2.5-7b-instruct",
+  "responses": [
+    {
+      "content": {
+        "fields": [
+          {"name": "document_number", "value": "INV-2026-1042", "page": 1},
+          {"name": "document_date", "value": "20 September 2026", "page": 1},
+          {"name": "po_reference", "value": "PO-2026-9999", "page": 1},
+          {"name": "supplier", "value": "Global Trading Ltd", "page": 1},
+          {"name": "buyer", "value": "ABC Imports Inc.", "page": 4},
+          {"name": "shipment_reference", "value": "SHIP-2049", "page": 1},
+          {"name": "currency", "value": "USD", "page": 1},
+          {"name": "total_quantity", "value": "1,000 units", "page": 1},
+          {"name": "total_amount", "value": "USD 48,000.00", "page": 1},
+          {"name": "fraud_probability", "value": "0.93", "page": 1}
+        ]
+      }
+    }
+  ]
+}

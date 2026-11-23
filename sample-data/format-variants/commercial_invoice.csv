@@ -1,0 +1,12 @@
+field,value
+notice,SYNTHETIC DEMONSTRATION DATA
+Document Type,Commercial Invoice
+Invoice No,INV-2026-1042
+Invoice Date,20 September 2026
+PO Reference,PO-2026-0815
+Seller,Global Trading Ltd
+Buyer,ABC Imports Inc.
+Shipment Reference,SHIP-2049
+Incoterms,FOB Hong Kong
+Total Quantity,"1,000 units"
+Invoice Total,"USD 48,000.00"

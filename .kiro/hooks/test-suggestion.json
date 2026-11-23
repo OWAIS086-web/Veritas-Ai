@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Test generation assistance",
+      "trigger": "PostFileCreate",
+      "description": "When a new backend service or API module is created, prompt the agent to add the matching tests.",
+      "matcher": "backend[\\\\/]app[\\\\/](services|api)[\\\\/].*\\.py$",
+      "action": {
+        "type": "agent",
+        "prompt": "A new backend service or API module was just created. Before calling this work complete: (1) identify its public functions or endpoints; (2) list the tests it needs per .kiro/steering/testing.md: unit tests, a Hypothesis property test for any normalizer or invariant, an integration test against real Postgres for any endpoint, and a cross-organization 404 test for any tenant-owned resource; (3) write those tests under backend/tests (or delegate to the test-engineer agent) and run them. Do not mark the related spec task done until they pass."
+      }
+    }
+  ]
+}

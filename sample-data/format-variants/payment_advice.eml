@@ -1,0 +1,24 @@
+From: treasury@abc-imports.example
+To: accounts@global-trading.example
+Subject: Payment advice RCPT-2026-0907 (SYNTHETIC DEMONSTRATION DATA)
+Date: Fri, 02 Oct 2026 09:30:00 +0000
+Message-ID: <rcpt-2026-0907@abc-imports.example>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+SYNTHETIC DEMONSTRATION DATA
+
+PAYMENT RECEIPT
+
+Receipt No: RCPT-2026-0907
+Payment Date: 2 October 2026
+Payer: ABC Imports Inc.
+Payee: Global Trading Ltd
+Invoice Reference: INV-2026-1042
+Bank: Pacific Harbour Bank
+Bank Reference: PHB-TT-20261002-4471
+Payment Method: Telegraphic transfer
+Amount Paid: USD 48,000.00
+
+SYNTHETIC DEMONSTRATION DATA - fictional companies; not a real transaction.

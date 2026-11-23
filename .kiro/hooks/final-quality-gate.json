@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Final quality gate",
+      "trigger": "PostTaskExec",
+      "description": "After a spec task completes, run the full quality gate (ruff, mypy, pytest, the OpenAPI contract check, and the frontend typecheck, lint and tests). On Linux and macOS run scripts/quality-gate.sh.",
+      "action": {
+        "type": "command",
+        "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/quality-gate.ps1",
+        "timeout": 900
+      }
+    }
+  ]
+}

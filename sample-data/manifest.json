@@ -1,0 +1,130 @@
+{
+  "files": {
+    "format-variants/bill_of_lading.tiff": {
+      "doc_type": "bill_of_lading",
+      "document_number": "OCLU-BL-2026-77310",
+      "sha256": "ff21a4f6ce45e2f3b6b7e53c9db8a2ad56d3cc69990d9e72c3e7b8170ee22789",
+      "size": 243408,
+      "source": "07_bill_of_lading",
+      "total_quantity": 1000
+    },
+    "format-variants/commercial_invoice.csv": {
+      "doc_type": "commercial_invoice",
+      "document_number": "INV-2026-1042",
+      "sha256": "337be720dd9798ce189f970a62a472b1d20cb7e646c2af16d0cd43fb55650878",
+      "size": 324,
+      "source": "02_commercial_invoice",
+      "total_amount": "48000.00",
+      "total_quantity": 1000
+    },
+    "format-variants/commercial_invoice.docx": {
+      "doc_type": "commercial_invoice",
+      "document_number": "INV-2026-1042",
+      "sha256": "a1a5e251b4ed0cc17119e2f4da92ce8e83baa1c0aabf1ad614533ffe7c1bf8ae",
+      "size": 37200,
+      "source": "02_commercial_invoice",
+      "total_amount": "48000.00",
+      "total_quantity": 1000
+    },
+    "format-variants/commercial_invoice_scanned.pdf": {
+      "doc_type": "commercial_invoice",
+      "document_number": "INV-2026-1042",
+      "sha256": "ed510385b9f3d6b6731ebe50a7b431351f632046c20b98945ac816547034a200",
+      "size": 2215949,
+      "source": "02_commercial_invoice",
+      "total_amount": "48000.00",
+      "total_quantity": 1000
+    },
+    "format-variants/packing_list.xlsx": {
+      "doc_type": "packing_list",
+      "document_number": "PL-2026-1042",
+      "sha256": "f0472346464ef8beeb5aaea132b309b6a1f219592854b0802950b87a4c92747a",
+      "size": 5283,
+      "source": "06_packing_list",
+      "total_quantity": 1000
+    },
+    "format-variants/payment_advice.eml": {
+      "doc_type": "payment_receipt",
+      "document_number": "RCPT-2026-0907",
+      "sha256": "e18736b9b41631605ae25825daf76f8cd40bdf6f06e78c387537b53d59bc26b0",
+      "size": 712,
+      "source": "05_payment_receipt",
+      "total_amount": "48000.00"
+    },
+    "format-variants/payment_receipt.jpg": {
+      "doc_type": "payment_receipt",
+      "document_number": "RCPT-2026-0907",
+      "sha256": "231e67d58eec371351ad678c11c9881d9ad5f41e8750dc8d198ca416e070e40e",
+      "size": 514828,
+      "source": "05_payment_receipt",
+      "total_amount": "48000.00"
+    },
+    "format-variants/purchase_order.png": {
+      "doc_type": "purchase_order",
+      "document_number": "PO-2026-0815",
+      "sha256": "472da11714aa3651b5af8d6ae689e247f29a182d0ce34b8b54f57b719e70ff48",
+      "size": 193949,
+      "source": "01_purchase_order",
+      "total_amount": "48000.00",
+      "total_quantity": 1000
+    },
+    "shipment-case/01_purchase_order.pdf": {
+      "doc_type": "purchase_order",
+      "document_number": "PO-2026-0815",
+      "sha256": "b9a348b7d64eff22eb7ddb76293f0411f737e2ac1e2e5a40295c5a94bca396c7",
+      "size": 8183,
+      "total_amount": "48000.00",
+      "total_page": 1,
+      "total_quantity": 1000
+    },
+    "shipment-case/02_commercial_invoice.pdf": {
+      "doc_type": "commercial_invoice",
+      "document_number": "INV-2026-1042",
+      "sha256": "18dea108dbcbb56e78457588b5c5a057bb7c5b6bcc62162c22c55ae8613dff4b",
+      "size": 7770,
+      "total_amount": "48000.00",
+      "total_page": 1,
+      "total_quantity": 1000
+    },
+    "shipment-case/03_customs_declaration.pdf": {
+      "doc_type": "customs_declaration",
+      "document_number": "CD-2026-55871",
+      "sha256": "0d217b1c6a83ba7468f79b0937115959a11cddaa43dab754a352b8f855f1e76e",
+      "size": 9042,
+      "total_amount": "68000.00",
+      "total_page": 2,
+      "total_quantity": 1000
+    },
+    "shipment-case/04_insurance_certificate.pdf": {
+      "doc_type": "insurance_certificate",
+      "document_number": "MMI-CERT-2026-3301",
+      "sha256": "7f1afff07004f128cbfaa480605c91da58d01652d48e9a96530094a4d80bef05",
+      "size": 6258,
+      "total_amount": "68000.00",
+      "total_page": 1
+    },
+    "shipment-case/05_payment_receipt.pdf": {
+      "doc_type": "payment_receipt",
+      "document_number": "RCPT-2026-0907",
+      "sha256": "050618443359475230b6da8efb09b48954afc740a64644afad842a7890d04025",
+      "size": 5477,
+      "total_amount": "48000.00",
+      "total_page": 1
+    },
+    "shipment-case/06_packing_list.pdf": {
+      "doc_type": "packing_list",
+      "document_number": "PL-2026-1042",
+      "sha256": "b86178cfdda90c024b901cbf88b5e69bd4df47fe2d70b283167fdf670e587185",
+      "size": 7225,
+      "total_quantity": 1000
+    },
+    "shipment-case/07_bill_of_lading.pdf": {
+      "doc_type": "bill_of_lading",
+      "document_number": "OCLU-BL-2026-77310",
+      "sha256": "ce6da32e72b8fe8e187234aae1d4f00a16214bd11f7ac73b00bdcfa33ffbce3f",
+      "size": 6269,
+      "total_quantity": 1000
+    }
+  },
+  "label": "SYNTHETIC DEMONSTRATION DATA"
+}

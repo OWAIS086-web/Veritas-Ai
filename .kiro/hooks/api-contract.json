@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "API contract validation",
+      "trigger": "PostFileSave",
+      "description": "After an API route or schema file changes, regenerate the OpenAPI schema from the app and diff it against the committed backend/openapi.json. Fails if they differ.",
+      "matcher": "backend[\\\\/]app[\\\\/](schemas|api)[\\\\/].*\\.py$",
+      "action": {
+        "type": "command",
+        "command": "uv run --directory backend python scripts/check_openapi.py",
+        "timeout": 90
+      }
+    }
+  ]
+}

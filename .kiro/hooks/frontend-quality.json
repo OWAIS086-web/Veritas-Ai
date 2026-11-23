@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Frontend quality check",
+      "trigger": "PostFileSave",
+      "description": "After a frontend TypeScript file is saved, run the TypeScript compiler check and ESLint.",
+      "matcher": "frontend[\\\\/]src[\\\\/].*\\.(ts|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "npm --prefix frontend run typecheck ; npm --prefix frontend run lint",
+        "timeout": 120
+      }
+    }
+  ]
+}
