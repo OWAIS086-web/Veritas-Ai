@@ -217,7 +217,8 @@ async def test_signed_preview_serves_bytes_and_expires(client: httpx.AsyncClient
     assert served.headers["content-type"] == "application/pdf"
     assert served.headers["x-content-type-options"] == "nosniff"
     assert "sandbox" in served.headers["content-security-policy"]
-    assert served.headers["content-disposition"] == 'inline; filename="invoice.pdf"'
+    # A direct open is a download (enterprise-security 2.2), never rendered by the browser.
+    assert served.headers["content-disposition"] == 'attachment; filename="invoice.pdf"'
     # Regression: download managers (IDM) captured the viewer's PDF and the page got a 204.
     # The viewer's marked request gets the same bytes as an anonymous binary stream.
     viewed = await client.get(preview["url"], headers={"X-Veritas-Viewer": "1"})

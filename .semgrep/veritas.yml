@@ -1,0 +1,36 @@
+# Project rules for scripts/security-scan.{ps1,sh} (enterprise-security 3.4).
+rules:
+  - id: veritas-sql-string-formatting
+    languages: [python]
+    severity: ERROR
+    message: >-
+      SQL built with string formatting. Use SQLAlchemy expressions or text() with bound
+      parameters. Identifiers in migrations go through migrations/rls.py `_ident`.
+    patterns:
+      - pattern-either:
+          - pattern: sqlalchemy.text(f"...")
+          - pattern: sqlalchemy.text("..." % $X)
+          - pattern: sqlalchemy.text("...".format(...))
+          - pattern: sqlalchemy.text("..." + $X)
+          - pattern: $S.execute(f"...", ...)
+          - pattern: $S.execute("..." % $X, ...)
+          - pattern: $S.execute("...".format(...), ...)
+          - pattern: $S.execute("..." + $X, ...)
+          - pattern: $S.fetch(f"...", ...)
+  - id: veritas-no-httpexception-in-services
+    languages: [python]
+    severity: WARNING
+    message: Services raise domain errors from app.core.errors, not HTTPException.
+    paths:
+      include: ["backend/app/services/**"]
+    pattern-either:
+      - pattern: raise fastapi.HTTPException(...)
+      - pattern: raise starlette.exceptions.HTTPException(...)
+  - id: veritas-no-verify-false
+    languages: [python]
+    severity: ERROR
+    message: TLS verification must not be disabled.
+    pattern-either:
+      - pattern: httpx.AsyncClient(..., verify=False, ...)
+      - pattern: httpx.Client(..., verify=False, ...)
+      - pattern: requests.$M(..., verify=False, ...)

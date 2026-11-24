@@ -51,6 +51,7 @@ ALL_PERMISSIONS: frozenset[str] = frozenset(
         "findings:assign",
         "comparisons:read",
         "comparisons:run",
+        "system:metrics",
     }
 )
 

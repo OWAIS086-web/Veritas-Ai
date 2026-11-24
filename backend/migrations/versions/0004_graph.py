@@ -290,4 +290,5 @@ def downgrade() -> None:
     op.drop_table("outbox")
     # ### end Alembic commands ###
     for signature in [*FUNCTIONS, "enforce_relationship_evidence()"]:
+        # nosemgrep: veritas-sql-string-formatting (constant function names)
         op.execute(f"DROP FUNCTION IF EXISTS {signature}")

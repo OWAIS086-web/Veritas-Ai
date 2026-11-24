@@ -19,7 +19,7 @@ frontend/tests/e2e/*.spec.ts Playwright
 ```
 
 ## Integration database strategy
-The session fixture creates a database `veritas_test_<random>` as the owner, runs `alembic upgrade head`, connects the app as `veritas_app`, and drops the database at the end of the session. Tests clean up the rows they create. Requires `VERITAS_TEST_ADMIN_DATABASE_URL`. If it is not set, the integration suite is skipped with an explicit reason, and the quality gate fails, so a missing database can't silently pass CI.
+The session fixture creates a database `veritas_test_<random>` as the owner, runs `alembic upgrade head`, connects the app as `veritas_app`, and drops the database at the end of the session. Tests clean up the rows they create. The owner connection comes from the migration settings (`VERITAS_MIGRATION_DATABASE_URL`, the same as the `migrate` service). If it is not set, the integration suite is skipped with an explicit reason, and the quality gate fails, so a missing database can't silently pass CI.
 
 ## Failure handling
 Benchmarks record failures as data points, not as script crashes.

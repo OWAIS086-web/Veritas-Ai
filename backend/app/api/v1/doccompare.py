@@ -9,7 +9,12 @@ import uuid
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Path, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import db_session, request_meta, require_permission
+from app.api.deps import (
+    db_session,
+    request_meta,
+    require_permission,
+    require_permission_rate_limited,
+)
 from app.api.v1.cases import read_limited
 from app.core.config import get_settings
 from app.core.db import tenant_session
@@ -78,7 +83,7 @@ async def upload_comparison(
     background: BackgroundTasks,
     original: UploadFile = File(..., description="The reference document (PDF, PNG, JPEG, TIFF)"),
     test: UploadFile = File(..., description="The document examined for differences"),
-    principal: Principal = Depends(require_permission("comparisons:run")),
+    principal: Principal = Depends(require_permission_rate_limited("comparisons:run", "upload")),
     session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> ComparisonUploadOut:

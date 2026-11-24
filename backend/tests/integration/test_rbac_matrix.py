@@ -86,6 +86,8 @@ ENDPOINTS: list[Endpoint] = [
     ("GET", "/api/v1/comparisons/{random}/exports", "comparisons:read", None),
     ("GET", "/api/v1/comparison-exports/{random}/download", "comparisons:read", None),
     ("GET", "/api/v1/system/vlm-status", "comparisons:read", None),
+    ("GET", "/api/v1/system/metrics", "system:metrics", None),
+    ("GET", "/api/v1/system/models", "stats:read", None),
 ]
 
 

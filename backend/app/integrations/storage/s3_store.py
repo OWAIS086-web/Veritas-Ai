@@ -19,10 +19,12 @@ from app.integrations.storage.base import (
     ObjectNotFoundError,
     ObjectStore,
     validate_key,
+    validate_prefix,
 )
 
 if TYPE_CHECKING:
     from mypy_boto3_s3 import S3Client
+    from mypy_boto3_s3.type_defs import ObjectIdentifierTypeDef
 
 _MISSING = {"404", "NoSuchKey", "NotFound", "NoSuchObject"}
 
@@ -93,6 +95,33 @@ class S3Store:
     async def exists(self, key: str) -> bool:
         validate_key(key)
         return await anyio.to_thread.run_sync(lambda: self._exists_sync(key))
+
+    def _delete_prefix_sync(self, prefix: str) -> int:
+        self._ensure_bucket()
+        deleted = 0
+        paginator = self._client.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=self._bucket, Prefix=prefix):
+            keys: list[ObjectIdentifierTypeDef] = [
+                {"Key": o["Key"]} for o in page.get("Contents", []) if "Key" in o
+            ]
+            if keys:
+                self._client.delete_objects(Bucket=self._bucket, Delete={"Objects": keys})
+                deleted += len(keys)
+        return deleted
+
+    async def delete_prefix(self, prefix: str) -> int:
+        validate_prefix(prefix)
+        return await anyio.to_thread.run_sync(lambda: self._delete_prefix_sync(prefix))
+
+    def _ping_sync(self) -> None:
+        # The bucket is created on first use (as any write would); a fresh deployment is
+        # healthy before its first upload. Unreachable storage still raises.
+        self._bucket_ready = False
+        self._ensure_bucket()
+
+    async def ping(self) -> None:
+        """Health check: the bucket is reachable (raises otherwise)."""
+        await anyio.to_thread.run_sync(self._ping_sync)
 
 
 @lru_cache

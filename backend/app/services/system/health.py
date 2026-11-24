@@ -10,10 +10,12 @@ from app.core.config import get_settings
 from app.core.db import get_engine
 from app.core.redis import get_redis
 from app.integrations.graph.neo4j_store import get_store
+from app.integrations.storage.s3_store import get_store as get_object_store
 from app.schemas.system import ComponentHealth, GraphSyncHealth, HealthResponse
 from app.services.graph.sync import outbox_health
 
 TIMEOUT_SECONDS = 2.0
+WORKER_PING_SECONDS = 1.0
 
 
 async def _database() -> ComponentHealth:
@@ -62,10 +64,43 @@ async def _graph() -> GraphSyncHealth:
     )
 
 
+async def _storage() -> ComponentHealth:
+    try:
+        async with asyncio.timeout(TIMEOUT_SECONDS):
+            await get_object_store().ping()
+        return ComponentHealth(status="ok")
+    except Exception as exc:
+        return ComponentHealth(status="error", detail=type(exc).__name__)
+
+
+def _ping_workers() -> int:
+    # Imported here so the API loads the Celery app (not the task modules) only for this check.
+    from app.workers.celery_app import celery_app
+
+    return len(celery_app.control.ping(timeout=WORKER_PING_SECONDS) or [])
+
+
+async def _worker() -> ComponentHealth:
+    try:
+        async with asyncio.timeout(TIMEOUT_SECONDS):
+            replies = await asyncio.to_thread(_ping_workers)
+    except Exception as exc:
+        return ComponentHealth(status="error", detail=type(exc).__name__)
+    if replies == 0:
+        return ComponentHealth(status="error", detail="no worker answered the ping")
+    # The count only: worker host names aren't shown on this unauthenticated endpoint.
+    return ComponentHealth(status="ok", detail=f"{replies} worker(s) answered")
+
+
 async def check() -> HealthResponse:
-    database, redis, graph = await asyncio.gather(_database(), _redis(), _graph())
+    database, redis, graph, storage, worker = await asyncio.gather(
+        _database(), _redis(), _graph(), _storage(), _worker()
+    )
     components = {"database": database, "redis": redis}
     healthy = all(c.status == "ok" for c in components.values())
     return HealthResponse(
-        status="ok" if healthy else "degraded", components=components, graph=graph
+        status="ok" if healthy else "degraded",
+        components=components,
+        graph=graph,
+        services={"storage": storage, "worker": worker},
     )

@@ -320,4 +320,5 @@ def downgrade() -> None:
         "protect_finding_ai_output",
         "enforce_evidence_scope",
     ):
+        # nosemgrep: veritas-sql-string-formatting (constant function names)
         op.execute(f"DROP FUNCTION IF EXISTS {function}()")

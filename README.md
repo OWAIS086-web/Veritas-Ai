@@ -21,8 +21,9 @@ Development happens phase by phase. The real, verified state of every feature is
 | 5 | Document forensics: PDF structure (incremental updates, producer history, single-use fonts), localized compression, version comparison, stamp variation. Observations with measured values and stated limitations, never verdicts. Forensics Lab UI with overlays on the page | Done |
 | 6 | Autonomous investigation: 8 LangGraph agents with allowlisted read-only tools, citation validation, budgets, Postgres checkpoints and a human-review step before the report. AI Agents screen with the live event log | Done |
 | 7 | Evidence Explorer (side-by-side documents at the cited pages with labelled highlights, forensic overlays, assignment and document requests) and Reports (PDF, DOCX, XLSX, JSON from one verified model; every citation re-checked before export; signed, hash-checked downloads) | Done |
-| Lab | Document Comparison Lab (Forensics Lab tab): original versus test document with page alignment, OCR and pixel comparison, Qwen2.5-VL region checks, synchronized viewers, review, annotated PDF/PNG, report and JSON downloads | Built and tested; final checks pending |
-| 8+ | Remaining specs (see `docs/implementation-progress.md`) | Not started |
+| Lab | Document Comparison Lab (Forensics Lab tab): original versus test document with page alignment, OCR and pixel comparison, Qwen2.5-VL region checks, synchronized viewers, review, annotated PDF/PNG, report and JSON downloads | Done |
+| 9 | Enterprise security and observability: catalog-checked tenant isolation and a cross-tenant test over every GET route, malicious-upload suite, rate limits, retention purge, edge headers and CORS, security-scan script (gitleaks, pip-audit, npm audit, semgrep, bandit), health/metrics/models endpoints, benchmark (`docs/benchmarks.md`), demo reset script | Done |
+| 8, 10 | No spec yet | Not started |
 
 Optional local models: set `VERITAS_LLM_BASE_URL` to an OpenAI-compatible server such as Ollama (see `docs/deployment.md`). Every value a model returns is kept only if it is found on the page it cites.
 

@@ -1042,8 +1042,42 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Database and Redis health */
+        /** Database and Redis health (status), plus graph, storage and worker liveness */
         get: operations["health_api_v1_system_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Queue depths and this organization's stage outcomes and durations (admin only) */
+        get: operations["metrics_api_v1_system_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Configured model provider and models with reachability (never the API key) */
+        get: operations["models_api_v1_system_models_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2352,6 +2386,13 @@ export interface components {
             };
             graph?: components["schemas"]["GraphSyncHealth"] | null;
             /**
+             * Services
+             * @description Object storage and worker liveness (Celery ping). Reported, but they don't change `status`: the API itself still serves reads without them, and the container health check uses `status`.
+             */
+            services?: {
+                [key: string]: components["schemas"]["ComponentHealth"];
+            };
+            /**
              * Status
              * @enum {string}
              */
@@ -2610,6 +2651,66 @@ export interface components {
             /** Value */
             value: number | null;
         };
+        /** MetricsOut */
+        MetricsOut: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Queues */
+            queues: components["schemas"]["QueueDepth"][];
+            /**
+             * Stages
+             * @description This organization's document stages
+             */
+            stages: components["schemas"]["StageMetrics"][];
+        };
+        /** ModelStatus */
+        ModelStatus: {
+            /**
+             * Available
+             * @description Listed by the endpoint; null if unreachable
+             */
+            available: boolean | null;
+            /** Model */
+            model: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "text" | "vision" | "fallback";
+        };
+        /** ModelsOut */
+        ModelsOut: {
+            /** Api Key Set */
+            api_key_set: boolean;
+            /** Configured */
+            configured: boolean;
+            /**
+             * Embeddings
+             * @default not_built
+             * @constant
+             */
+            embeddings: "not_built";
+            /**
+             * Endpoint Host
+             * @description Host only; never the key or full URL
+             */
+            endpoint_host: string | null;
+            /** Error */
+            error: string | null;
+            /** Models */
+            models: components["schemas"]["ModelStatus"][];
+            /**
+             * Provider
+             * @default openai_compatible
+             * @constant
+             */
+            provider: "openai_compatible";
+            /** Reachable */
+            reachable: boolean;
+        };
         /** MyOrganizationOut */
         MyOrganizationOut: {
             /**
@@ -2769,6 +2870,16 @@ export interface components {
             document_ids: string[];
             /** Job Id */
             job_id: string | null;
+        };
+        /** QueueDepth */
+        QueueDepth: {
+            /** Queue */
+            queue: string;
+            /**
+             * Waiting
+             * @description Tasks waiting in the broker; null if unreadable
+             */
+            waiting: number | null;
         };
         /** RebuildOut */
         RebuildOut: {
@@ -3007,6 +3118,22 @@ export interface components {
          * @enum {string}
          */
         Role: "org_admin" | "investigation_manager" | "investigator" | "reviewer" | "read_only_analyst";
+        /** StageMetrics */
+        StageMetrics: {
+            /** Failed */
+            failed: number;
+            /**
+             * Mean Seconds
+             * @description Mean duration of succeeded runs
+             */
+            mean_seconds: number | null;
+            /** Other */
+            other: number;
+            /** Stage */
+            stage: string;
+            /** Succeeded */
+            succeeded: number;
+        };
         /** StageOut */
         StageOut: {
             /** Attempts */
@@ -5659,6 +5786,7 @@ export interface operations {
             query?: never;
             header?: {
                 "X-Veritas-Viewer"?: string | null;
+                "Sec-Fetch-Dest"?: string | null;
             };
             path: {
                 token: string;
@@ -7306,6 +7434,100 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    metrics_api_v1_system_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricsOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    models_api_v1_system_models_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelsOut"];
+                };
+            };
+            /** @description Missing or invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Role lacks the required permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not found (or belongs to another organization) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
         };

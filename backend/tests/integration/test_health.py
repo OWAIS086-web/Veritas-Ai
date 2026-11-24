@@ -12,6 +12,11 @@ async def test_health_ok(client: httpx.AsyncClient) -> None:
     assert resp.status_code == 200
     body = resp.json()
     graph = body.pop("graph")
+    # Since phase 9: storage and worker liveness, reported without changing the status.
+    services = body.pop("services")
+    assert set(services) == {"storage", "worker"}
+    assert services["storage"] == {"status": "ok", "detail": None}
+    assert services["worker"]["status"] in ("ok", "error") and services["worker"]["detail"]
     assert body == {
         "status": "ok",
         "components": {

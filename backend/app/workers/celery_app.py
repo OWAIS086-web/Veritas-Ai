@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from contextvars import Token
+from typing import Any
+
 from celery import Celery
+from celery.signals import task_postrun, task_prerun
 
 from app.core.config import get_settings
-from app.core.logging import configure_logging
+from app.core.logging import configure_logging, task_context, task_context_var
 
 _settings = get_settings()
 configure_logging(_settings.log_level)
@@ -28,7 +32,30 @@ celery_app = Celery(
 celery_app.conf.beat_schedule = {
     "graph-drain-outbox": {"task": "graph.drain_outbox", "schedule": 15.0},
     "graph-reconcile": {"task": "graph.reconcile", "schedule": 600.0},
+    "retention-purge": {
+        "task": "system.retention_purge",
+        "schedule": float(_settings.retention_purge_interval_seconds),
+    },
 }
+_context_tokens: dict[str, Token[dict[str, str] | None]] = {}
+
+
+@task_prerun.connect
+def _bind_log_context(
+    task_id: str | None = None, task: Any = None, args: tuple[Any, ...] = (), **_: Any
+) -> None:
+    """Every log line of a task carries its name, ids and organization (see JsonFormatter)."""
+    ctx = task_context(getattr(task, "name", "unknown"), task_id, tuple(args or ()))
+    _context_tokens[task_id or ""] = task_context_var.set(ctx)
+
+
+@task_postrun.connect
+def _clear_log_context(task_id: str | None = None, **_: Any) -> None:
+    token = _context_tokens.pop(task_id or "", None)
+    if token is not None:
+        task_context_var.reset(token)
+
+
 celery_app.conf.update(
     task_acks_late=True,
     task_reject_on_worker_lost=True,

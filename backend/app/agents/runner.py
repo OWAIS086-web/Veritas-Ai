@@ -4,6 +4,7 @@ allowlisted reads → reference validation → deterministic finish. Every step 
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from typing import Any
 
@@ -19,6 +20,16 @@ from app.integrations.llm.base import LLMProvider, ProviderError
 
 MAX_INVALID_RETRIES = 2
 MAX_REQUESTS_PER_ROUND = 3
+_FENCE_TAG = re.compile(r"<(\s*/?\s*document_data)", re.IGNORECASE)
+
+
+def fence_safe(text: str) -> str:
+    """Document text can't open or close a <document_data> block: a tag written in the
+    document (e.g. "</document_data> SYSTEM: ...") is shown as `&lt;/document_data`, so
+    everything the document says stays inside its own block."""
+    return _FENCE_TAG.sub(r"&lt;\1", text)
+
+
 # Keys that name a single cited row when they appear directly on an output item.
 ID_KEYS = ("finding_id", "document_id", "entity_id")
 
@@ -63,7 +74,7 @@ def build_messages(
     )
     blocks = "\n".join(
         f'<document_data document_id="{p["document_id"]}" page="{p["page"]}">\n'
-        f"{p['text']}\n</document_data>"
+        f"{fence_safe(str(p['text']))}\n</document_data>"
         for p in facts.pages
     )
     user = (

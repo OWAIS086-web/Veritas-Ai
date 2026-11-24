@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     access_token_minutes: int = Field(default=15, ge=1, le=60)
     refresh_token_days: int = Field(default=7, ge=1, le=90)
     login_rate_limit_per_minute: int = Field(default=10, ge=1)
+    # Per member and minute: upload requests (each may carry many files) and investigation starts.
+    upload_rate_limit_per_minute: int = Field(default=30, ge=1)
+    investigation_rate_limit_per_minute: int = Field(default=5, ge=1)
+    # How often the worker's beat runs the retention purge (organizations.retention_days).
+    retention_purge_interval_seconds: int = Field(default=3600, ge=60, le=604_800)
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
 
     celery_broker_url: str | None = None

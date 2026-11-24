@@ -13,13 +13,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import db_session, require_permission
 from app.core.db import tenant_session
+from app.integrations.llm.openai_compat import models_status
 from app.schemas.common import PROBLEM_RESPONSES, Page
-from app.schemas.system import AuditLogOut, HealthResponse, JobOut, OverviewStats
+from app.schemas.system import (
+    AuditLogOut,
+    HealthResponse,
+    JobOut,
+    MetricsOut,
+    ModelsOut,
+    OverviewStats,
+)
 from app.services.audit import service as audit_service
 from app.services.identity.principal import Principal
 from app.services.jobs import service as job_service
 from app.services.stats import overview as stats_service
 from app.services.system import health as health_service
+from app.services.system import metrics as metrics_service
 
 router = APIRouter(tags=["system"])
 
@@ -31,12 +40,35 @@ SSE_MAX_SECONDS = 600
     "/system/health",
     response_model=HealthResponse,
     responses={503: {"model": HealthResponse}},
-    summary="Database and Redis health",
+    summary="Database and Redis health (status), plus graph, storage and worker liveness",
 )
 async def health() -> JSONResponse:
     result = await health_service.check()
     code = status.HTTP_200_OK if result.status == "ok" else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(result.model_dump(), status_code=code)
+
+
+@router.get(
+    "/system/metrics",
+    response_model=MetricsOut,
+    responses=PROBLEM_RESPONSES,
+    summary="Queue depths and this organization's stage outcomes and durations (admin only)",
+)
+async def metrics(
+    principal: Principal = Depends(require_permission("system:metrics")),
+    session: AsyncSession = Depends(db_session, scope="function"),
+) -> MetricsOut:
+    return await metrics_service.collect(session, principal.organization_id)
+
+
+@router.get(
+    "/system/models",
+    response_model=ModelsOut,
+    responses=PROBLEM_RESPONSES,
+    summary="Configured model provider and models with reachability (never the API key)",
+)
+async def models(principal: Principal = Depends(require_permission("stats:read"))) -> ModelsOut:
+    return ModelsOut(**await models_status())
 
 
 @router.get(

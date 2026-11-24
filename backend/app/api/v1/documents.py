@@ -138,6 +138,7 @@ async def get_file(
     token: str = Path(max_length=400),
     meta: RequestMeta = Depends(request_meta),
     viewer: str | None = Header(None, alias=VIEWER_HEADER, max_length=8),
+    fetch_dest: str | None = Header(None, alias="Sec-Fetch-Dest", max_length=20),
 ) -> Response:
     try:
         grant = verify(token)
@@ -179,13 +180,20 @@ async def get_file(
     safe = _SAFE_NAME.sub("_", name)[:150] or "document"
     # The in-app viewer reads the bytes itself. It gets an anonymous binary response (no type,
     # no filename), so download managers that capture "files" by type or extension leave it
-    # alone. A direct download keeps the real type and filename.
+    # alone. An <img> tag (page images) renders inline. Anything else is a download: an
+    # attachment with the real type and a sanitized filename, never rendered by the browser.
     as_viewer = viewer == "1"
+    if as_viewer:
+        disposition = "inline"
+    elif fetch_dest == "image" and mime.startswith("image/"):
+        disposition = f'inline; filename="{safe}"'
+    else:
+        disposition = f'attachment; filename="{safe}"'
     return Response(
         content=data,
         media_type="application/octet-stream" if as_viewer else mime,
         headers={
-            "Content-Disposition": "inline" if as_viewer else f'inline; filename="{safe}"',
+            "Content-Disposition": disposition,
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "private, no-store",
             # The original is untrusted content: if opened directly it gets no script privileges.

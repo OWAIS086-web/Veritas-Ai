@@ -5,6 +5,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/primitives";
 import { AuthLayout } from "@/features/auth/AuthLayout";
+import { safeReturnPath } from "@/features/auth/redirect";
 import { startSession } from "@/features/auth/session";
 import { api, ApiError } from "@/services/api";
 import { useAuth } from "@/stores/auth";
@@ -19,8 +20,8 @@ export function LoginPage() {
   const login = useMutation({
     mutationFn: async () => startSession(await api.login({ email, password })),
     onSuccess: () => {
-      const from = (location.state as { from?: string } | null)?.from;
-      navigate(from && from !== "/login" ? from : "/", { replace: true });
+      const from = (location.state as { from?: unknown } | null)?.from;
+      navigate(safeReturnPath(from), { replace: true });
     },
   });
 

@@ -113,6 +113,10 @@ def app_env(test_db: TestDatabase) -> Iterator[None]:
         "VERITAS_DB_NULL_POOL": "false",
         "VERITAS_REDIS_URL": "redis://127.0.0.1:6379/15",
         "VERITAS_LOGIN_RATE_LIMIT_PER_MINUTE": str(TEST_RATE_LIMIT),
+        # Fixtures upload and start investigations quickly as one member; the limits are
+        # tested with their own low values in tests/security/test_rate_limits.py.
+        "VERITAS_UPLOAD_RATE_LIMIT_PER_MINUTE": "1000",
+        "VERITAS_INVESTIGATION_RATE_LIMIT_PER_MINUTE": "1000",
         "VERITAS_JWT_SECRET": "test-secret-" + secrets.token_hex(16),
         "VERITAS_STORAGE_ENDPOINT": "127.0.0.1:9000",
         "VERITAS_STORAGE_BUCKET": "veritas-test-" + secrets.token_hex(4),

@@ -113,6 +113,14 @@ Report files live in object storage under `{organization_id}/{report_id}/derived
 
 All four have `organization_id`, an index on it, RLS and the tenant policy. Export files are derived artifacts under `{organization_id}/{comparison_id}/derived/{kind}-{random}.{ext}`, written once per attempt and re-hashed on every download.
 
+## Functions (migration 0009, retention purge)
+| Function | Executable by | Notes |
+|---|---|---|
+| `retention_organizations()` | veritas_app | `SECURITY DEFINER`, stable. Returns `(organization_id, retention_days)` of the organizations that set a retention period. |
+| `purge_expired_case(uuid)` | veritas_app | `SECURITY DEFINER`. Deletes one case of the caller's tenant (`app.current_org`) only when `COALESCE(deleted_at, updated_at)` is older than the organization's `retention_days`, and returns whether it did. Everything under the case goes through the existing `ON DELETE CASCADE` keys. `audit_logs` has no key to cases, so the trail stays. |
+
+`veritas_app` still has no DELETE grant on `cases`; this function is the only hard-delete path. The worker's `system.retention_purge` task (every `VERITAS_RETENTION_PURGE_INTERVAL_SECONDS`) deletes the storage objects of each expired case's documents, reports and comparisons first, then calls the function, and writes one `retention.purge` audit entry per organization with counts only.
+
 Original files are not stored in Postgres. They live in object storage under `<organization_id>/…` and are never modified.
 
 ## Testing

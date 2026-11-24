@@ -20,8 +20,9 @@ This file records only verified status. "Completed" means the listed tests were 
 | 5: Document forensics | Completed | Quality gate 8/8 PASS (320 backend + 47 frontend tests, 0 skipped; 7 live tests deselected). Every forensic fixture yields exactly its expected anomaly types through the real pipeline, and the 7 shipment PDFs yield none. Severity capped at medium by the database. Playwright 9/9, smoke 13/13, gitleaks clean. |
 | 6: Autonomous investigation | Completed | Quality gate 8/8 PASS (342 backend + 50 frontend tests, 0 skipped; 8 live tests deselected). 8 LangGraph agents with allowlisted tools, reference validation, budgets, Postgres checkpoints under RLS and a human-review interrupt. 6 live runs with local `qwen2.5:7b-instruct`, including the full browser flow on the stack (paused, approved, report drafted). Playwright 9/9 plus the live agents test, smoke 13/13, gitleaks clean. |
 | 7: Evidence explorer and reporting | Completed | Quality gate 8/8 PASS (361 backend + 60 frontend tests, 0 skipped; 8 live tests deselected). The demo report in PDF, DOCX, XLSX and JSON cites the 5 evidence documents on their pages with the finding id. Orphan references and invented summary numbers fail the export. Side-by-side evidence comparison, forensic overlays, assignment and document requests. Playwright 10 passed plus 1 live test skipped with its reason, smoke 14/14, gitleaks clean. |
-| Document Comparison Lab | In Progress (built and tested; final gate and full Playwright rerun pending) | See "Document Comparison Lab" below |
-| 8–10 | Not Started | Specs written |
+| Document Comparison Lab | Completed | Quality gate 8/8 PASS (400 backend + 67 frontend tests, 0 skipped; 9 live tests deselected). Altered invoice: exactly its 3 planted changes; re-saved copy: none; rotated scan: its 2 changes plus the missing page. Live `qwen2.5vl:7b` confirmed 3/3 regions. Playwright 11 passed plus 1 live test skipped with its reason (2 browser workers), smoke 14/14, gitleaks clean. |
+| 9: Enterprise security, observability | Completed | Quality gate 8/8 PASS (447 backend + 68 frontend tests, 0 skipped). Playwright 16/16 with the live model (full shipment scenario), smoke 14/14, security scan 5/5, demo reset and benchmark run. |
+| 8, 10 | Not Started | No spec in `.kiro/specs`; scope needs your decision |
 
 ---
 
@@ -387,7 +388,7 @@ Recorded deviations:
 Remaining specs: enterprise security and observability (Phase 9 in `docs/kiro-usage.md`'s spec table). Phases 8 and 10 have no separate spec in `.kiro/specs`; check the master plan before starting them.
 
 ## Document Comparison Lab (original versus test)
-Delivered as one implementation, not split into phases. Spec: `.kiro/specs/document-comparison/`. Status: **In Progress**. Everything is built and the tests below passed, but the final checks listed under "Remaining" were stopped by request on 2026-11-24, so no spec task is ticked yet.
+Delivered as one implementation, not split into phases. Spec: `.kiro/specs/document-comparison/`. Status: **Completed** (2026-11-24). All 8 spec tasks are ticked after the final checks below.
 
 **Built:**
 - Backend: migration 0008 (four tables with RLS), `app/models/doccompare.py`, `app/services/doccompare/` (geometry, registration, pages, visual, text, fusion, vision, engine, annotate, report, service, run), `app/api/v1/doccompare.py` (12 endpoints), `app/schemas/doccompare.py`, `app/workers/doccompare_tasks.py`, permissions `comparisons:read` / `comparisons:run`, the `comparison-export` signed-link artifact, `VERITAS_COMPARISON_*` settings.
@@ -415,14 +416,84 @@ Delivered as one implementation, not split into phases. Spec: `.kiro/specs/docum
 4. `clip` rounding could move an edge 0.005 pt off the page; annotations at the page edge extended past it (both found by Hypothesis).
 5. **Pre-existing Phase 7 defect:** a report PDF whose table was wider than the page made PyMuPDF's layout loop; it held the only worker slot for 570 s and made 6 Playwright tests time out. Fixed in `app/integrations/pdf/story.py` (soft breaks in long hashes, progress guard), with a regression test on the real report content.
 
-### Remaining (not done yet)
-1. Rerun the full Playwright suite on the rebuilt stack (the last full run, before the report fix, had 6 timeouts caused by defect 5; it was interrupted after the fix).
-2. Rerun the full quality gate on an idle machine and record 8/8.
-3. Rerun `scripts/smoke.ps1` (optionally add a comparison check) and gitleaks.
-4. Then tick `.kiro/specs/document-comparison/tasks.md` and set this section to Completed.
+### Final checks (2026-11-24, rebuilt stack, final code)
+| Check | Result |
+|---|---|
+| Quality gate, machine idle | **8/8 PASS**: pytest 400 passed (0 skipped, 9 live deselected), Vitest 67 passed (16 files), ruff format and check, mypy, OpenAPI contract, frontend typecheck and lint |
+| Playwright, 2 browser workers | **11 passed**, 1 skipped (the live agents test, which needs `VERITAS_E2E_LIVE_MODEL=1`) |
+| Playwright, default 4 browser workers | Run 1, 1 minute after Docker Desktop started: 5 timed out at the first registration (the cold-start case recorded in Phase 7). Run 2: 9 passed, 2 timed out waiting on the worker queue (see the limitation below). |
+| Smoke (`scripts/smoke.ps1`) | **14/14** |
+| Gitleaks (official container, 893 committable files) | No leaks |
+
+The smoke test has no comparison check yet; the comparison flow is covered by the integration suite and the Playwright spec.
 
 ### Known limitations
 - The vision model's boxes were unusable in live runs (outside the image or 30–40 px off), so it only adjusts confidence or proposes pixel-confirmed regions.
 - The date change "3"→"8" on the digital fixture is found from the text only; its glyph change stays under the pixel thresholds.
 - Pages are paired in order; inserted pages in the middle shift the pairing.
 - Thresholds were calibrated on synthetic documents only.
+- **One worker slot is shared by every task.** In the 4-browser Playwright run, a report that took 0.7 s to generate completed 122 s after it was requested, because it waited behind 9 document batches (up to 53 s each) and a 32.5 s comparison. A ping job waited past its 20 s check the same way. Assertions and timeouts were not changed; the suite passes with 2 browser workers. A separate queue (or a second worker) for short tasks would remove the wait; it isn't built. The worker already uses 5.5 GB of the 7.7 GB Docker memory, so `VERITAS_WORKER_CONCURRENCY=2` was not tried.
+
+## Phase 9: Enterprise security and observability
+Status: **Completed** (2026-11-24). All 15 tasks are ticked: `enterprise-security` 8/8 and `observability-testing` 7/7. Each was ticked after the checks below passed on the final code and the rebuilt stack.
+
+**Built:**
+- **Rate limits** on uploads (document and comparison uploads share one budget) and on investigation starts, per member: `app/services/identity/rate_limit.py` and `require_permission_rate_limited` in `app/api/deps.py`.
+- **Retention purge:**
+  - Migration `0009_retention.py`, with `retention_organizations()` and `purge_expired_case(uuid)`.
+  - `app/services/system/retention.py` and the beat task `system.retention_purge`.
+  - `ObjectStore.delete_prefix`, which accepts only a full `{org}/{id}/` prefix.
+- **Health, metrics and models:**
+  - Health now also reports storage and worker liveness. They don't change `status`, because the container health check uses it.
+  - `GET /system/metrics`, behind the new permission `system:metrics` (admin only).
+  - `GET /system/models`, which reports reachability and never the key.
+- **Task log context:** `task_context` and the Celery prerun and postrun signals.
+- **Nginx:** a shared headers snippet included by every location (`location /` had silently lost `Permissions-Policy`), HSTS only behind TLS, and a `default-src 'none'` CSP on the API.
+- **Downloads:** direct opens of `/files` are now attachments.
+- **Security fixes found during the work:**
+  - Document text could close its `<document_data>` block in agent prompts. `fence_safe` escapes tags written in a document.
+  - The post-login redirect accepted backslash paths (react-router GHSA-wrjc-x8rr-h8h6). `safeReturnPath` now allows only same-app paths.
+  - npm override `tinypool ^2.1.2` removes 2 critical dev-only advisories.
+- **Scripts:**
+  - `scripts/security-scan.ps1` / `.sh` and `.semgrep/veritas.yml`.
+  - `scripts/demo-reset.ps1` / `.sh` and `backend/scripts/demo_seed.py`, using the public API only.
+  - `backend/scripts/benchmark.py`, which writes `docs/benchmarks.md`.
+  - `psutil` is declared as a dev dependency (process memory). It was already installed through PyMuPDF and Docling.
+- **Tests:**
+  - `tests/integration/security/`: schema isolation, cross-tenant reads over all 43 GET routes (Hypothesis over the 5 roles), malicious uploads, API hardening and retention.
+  - `tests/integration/test_observability.py` and `tests/property/test_security_invariants.py`.
+  - Frontend: `redirect.test.ts`, and the e2e specs `security-headers.spec.ts` and `shipment-scenario.spec.ts`.
+- **Docs:** `security.md` rewritten (controls and accepted exceptions), `benchmarks.md` added, and `api.md`, `database.md`, `architecture.md` and `deployment.md` updated.
+
+**Deviations, recorded in the spec designs:**
+- The security tests live in `tests/integration/security/` because they need the integration database fixtures.
+- The test-database harness takes the owner connection from `VERITAS_MIGRATION_DATABASE_URL` instead of a separate `VERITAS_TEST_ADMIN_DATABASE_URL`.
+- `scripts/quality-gate.*` already existed and runs the security tests as part of pytest.
+
+### Test results (2026-11-24, final code)
+| Check | Result |
+|---|---|
+| Quality gate, machine idle | **8/8 PASS**: pytest 447 passed (0 skipped, 9 live deselected), Vitest 68 passed (17 files), ruff format and check, mypy, OpenAPI contract, frontend typecheck and lint |
+| Playwright on the rebuilt stack, `VERITAS_E2E_LIVE_MODEL=1`, 2 browser workers | **16 passed, 0 skipped**: the full shipment scenario (upload, extraction values, the USD 20,000 discrepancy, evidence at page 2, the Neo4j graph, a live `qwen2.5:7b-instruct` investigation approved by a human, and a report with verified citations), the live agents test, security headers, HSTS and CORS through Nginx, and the comparison lab |
+| Smoke (`scripts/smoke.ps1`) | **14/14** |
+| `scripts/security-scan.ps1` | **5/5 PASS**: gitleaks found no leaks, pip-audit found no known vulnerabilities, npm audit found nothing high or critical (4 moderate, accepted in `security.md`), semgrep is clean, bandit is clean at medium and above |
+| `scripts/demo-reset.ps1` | First run registered the demo user and seeded 1 finding (USD 20,000.00). The second run removed the old case and seeded again. |
+| `benchmark.py`, all options | Written to `docs/benchmarks.md`: 45/45 documents succeeded. Mean OCR 9.7 s per document, model extraction 2.2 s, investigation 33.2 s to review, peak worker 2.1 GB. |
+| Live health on the stack | `storage ok`, `worker: 1 worker(s) answered` |
+
+### Defects found and fixed during Phase 9
+1. **Agent prompt fence breakout:** page text containing `</document_data>` ended the data block early. Covered by `test_security_invariants.py`.
+2. **Open redirect after sign-in:** a backslash path in the stored return path. Covered by `redirect.test.ts`.
+3. **Nginx `location /` lacked `Permissions-Policy`:** nginx drops server-level `add_header` lines in a location that sets its own. Covered by `security-headers.spec.ts`.
+4. **Health reported storage as broken before the first upload:** the bucket didn't exist yet. Found when `test_health_ok` ran alone; ping now creates the bucket as the first write would.
+5. **The Docker frontend build broke** because DOM types were used in an e2e spec under the e2e tsconfig. Fixed before the stack runs.
+6. **Two critical advisories in `tinypool`** (dev only). Overridden to 2.x; all 67 Vitest tests passed before the new auth test was added.
+
+### Known limitations
+- Four moderate npm advisories remain. They are documented with reasons in `docs/security.md`. The react-router fix needs a major upgrade.
+- One worker slot serves every task (measured in the comparison-lab section). The browser suite passes with 2 parallel browsers. Four can push short tasks past their test timeouts.
+- The refresh token is still stored in localStorage (see `docs/security.md`).
+- `smoke.sh`, `security-scan.sh`, `demo-reset.sh` and `quality-gate.sh` weren't run here (no bash on this machine).
+
+### Phases 8 and 10
+Not started. There is no spec for either in `.kiro/specs`; their scope needs your decision.

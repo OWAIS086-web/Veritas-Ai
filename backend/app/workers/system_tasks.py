@@ -12,8 +12,10 @@ from celery import Task
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.integrations.storage.s3_store import get_store
 from app.models import Job
 from app.services.jobs.runner import Outcome, execute_job
+from app.services.system.retention import purge_expired
 from app.workers.celery_app import celery_app
 
 
@@ -24,6 +26,11 @@ async def ping_work(session: AsyncSession, job: Job) -> dict[str, Any]:
         "worker": socket.gethostname(),
         "db_roundtrip_ms": round((time.perf_counter() - start) * 1000, 2),
     }
+
+
+@celery_app.task(name="system.retention_purge", time_limit=1800, soft_time_limit=1750)
+def retention_purge() -> dict[str, Any]:
+    return asyncio.run(purge_expired(get_store()))
 
 
 @celery_app.task(name="system.ping", bind=True, max_retries=None)

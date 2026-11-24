@@ -1,8 +1,10 @@
-"""Fixed-window login rate limiting in Redis. Fails closed when Redis is unavailable."""
+"""Fixed-window rate limiting in Redis: login (per email and per IP) and expensive actions
+(per member of an organization). Fails closed when Redis is unavailable."""
 
 from __future__ import annotations
 
 import hashlib
+import uuid
 
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
@@ -11,7 +13,36 @@ from app.core.errors import RateLimitedError, ServiceUnavailableError
 from app.core.logging import get_logger
 
 WINDOW_SECONDS = 60
+ACTIONS = ("upload", "investigation")
 logger = get_logger(__name__)
+
+
+def action_key(action: str, organization_id: uuid.UUID, user_id: uuid.UUID) -> str:
+    if action not in ACTIONS:
+        raise ValueError(f"unknown rate-limited action: {action!r}")
+    return f"rl:{action}:org:{organization_id}:user:{user_id}"
+
+
+async def check_action_rate(
+    redis: Redis, action: str, organization_id: uuid.UUID, user_id: uuid.UUID, limit: int
+) -> None:
+    """At most `limit` requests of `action` per member per minute."""
+    key = action_key(action, organization_id, user_id)
+    try:
+        async with redis.pipeline(transaction=True) as pipe:
+            pipe.incr(key)
+            pipe.expire(key, WINDOW_SECONDS, nx=True)
+            count = int((await pipe.execute())[0])
+        if count > limit:
+            ttl = int(await redis.ttl(key))
+            logger.warning("rate_limited", extra={"action": action, "count": count})
+            raise RateLimitedError(
+                f"Too many {action} requests. Try again in a minute.",
+                headers={"Retry-After": str(max(ttl, 1))},
+            )
+    except RedisError as exc:
+        logger.error("rate_limiter_unavailable", extra={"error": type(exc).__name__})
+        raise ServiceUnavailableError("This action is temporarily unavailable.") from exc
 
 
 def login_keys(ip: str | None, email: str) -> list[str]:

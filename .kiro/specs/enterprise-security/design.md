@@ -23,4 +23,4 @@ The test queries `pg_class` and `pg_policy` for every table with an `organizatio
 - **Elevation of privilege:** the permission map and agents with no write tools.
 
 ## Testing
-Security tests live in `backend/tests/security/` and run in the default suite. The scanners run in `scripts/security-scan.ps1` and `.sh`.
+Security tests live in `backend/tests/integration/security/` (they need the integration database fixtures) and run in the default suite. Pure security invariants are in `backend/tests/property/test_security_invariants.py`. The scanners run in `scripts/security-scan.ps1` and `.sh`.

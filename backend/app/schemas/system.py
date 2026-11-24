@@ -6,6 +6,8 @@ import uuid
 from datetime import date, datetime
 from typing import Any, Literal
 
+from pydantic import Field
+
 from app.schemas.common import ApiModel
 
 
@@ -28,6 +30,50 @@ class HealthResponse(ApiModel):
     status: Literal["ok", "degraded"]
     components: dict[str, ComponentHealth]
     graph: GraphSyncHealth | None = None
+    services: dict[str, ComponentHealth] = Field(
+        default_factory=dict,
+        description=(
+            "Object storage and worker liveness (Celery ping). Reported, but they don't change "
+            "`status`: the API itself still serves reads without them, and the container "
+            "health check uses `status`."
+        ),
+    )
+
+
+class QueueDepth(ApiModel):
+    queue: str
+    waiting: int | None = Field(description="Tasks waiting in the broker; null if unreadable")
+
+
+class StageMetrics(ApiModel):
+    stage: str
+    succeeded: int
+    failed: int
+    other: int
+    mean_seconds: float | None = Field(description="Mean duration of succeeded runs")
+
+
+class MetricsOut(ApiModel):
+    generated_at: datetime
+    queues: list[QueueDepth]
+    stages: list[StageMetrics] = Field(description="This organization's document stages")
+
+
+class ModelStatus(ApiModel):
+    role: Literal["text", "vision", "fallback"]
+    model: str
+    available: bool | None = Field(description="Listed by the endpoint; null if unreachable")
+
+
+class ModelsOut(ApiModel):
+    provider: Literal["openai_compatible"] = "openai_compatible"
+    configured: bool
+    endpoint_host: str | None = Field(description="Host only; never the key or full URL")
+    api_key_set: bool
+    reachable: bool
+    error: str | None
+    models: list[ModelStatus]
+    embeddings: Literal["not_built"] = "not_built"
 
 
 class JobOut(ApiModel):

@@ -7,7 +7,12 @@ import uuid
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import db_session, request_meta, require_permission
+from app.api.deps import (
+    db_session,
+    request_meta,
+    require_permission,
+    require_permission_rate_limited,
+)
 from app.core.config import get_settings
 from app.integrations.storage.s3_store import get_store
 from app.schemas.common import PROBLEM_RESPONSES, Page
@@ -125,7 +130,7 @@ async def upload_documents(
     files: list[UploadFile] = File(
         ..., description="PDF, PNG, JPG, TIFF, DOCX, XLSX, CSV, EML or ZIP"
     ),
-    principal: Principal = Depends(require_permission("documents:upload")),
+    principal: Principal = Depends(require_permission_rate_limited("documents:upload", "upload")),
     session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> UploadResponse:

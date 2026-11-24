@@ -11,7 +11,12 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Header, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import db_session, request_meta, require_permission
+from app.api.deps import (
+    db_session,
+    request_meta,
+    require_permission,
+    require_permission_rate_limited,
+)
 from app.core.db import tenant_session
 from app.schemas.common import PROBLEM_RESPONSES
 from app.schemas.investigations import (
@@ -40,7 +45,9 @@ async def investigate(
     case_id: uuid.UUID,
     body: InvestigateRequest,
     background: BackgroundTasks,
-    principal: Principal = Depends(require_permission("investigations:run")),
+    principal: Principal = Depends(
+        require_permission_rate_limited("investigations:run", "investigation")
+    ),
     session: AsyncSession = Depends(db_session, scope="function"),
     meta: RequestMeta = Depends(request_meta),
 ) -> InvestigationOut:

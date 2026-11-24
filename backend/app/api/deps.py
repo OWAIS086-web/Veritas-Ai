@@ -9,13 +9,16 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.db import get_session, set_tenant
 from app.core.errors import AuthenticationError, PermissionDeniedError
 from app.core.logging import org_id_var
 from app.core.permissions import permissions_for
+from app.core.redis import get_redis
 from app.core.security import InvalidTokenError, decode_access_token
 from app.models import OrganizationMember
 from app.services.identity.principal import Principal, RequestMeta
+from app.services.identity.rate_limit import check_action_rate
 
 _bearer = HTTPBearer(auto_error=False, description="Access token from /auth/login")
 _UNAUTHORIZED = {"WWW-Authenticate": "Bearer"}
@@ -73,3 +76,20 @@ def require_permission(permission: str) -> Callable[..., Awaitable[Principal]]:
 
     _check.__name__ = f"require_{permission.replace(':', '_')}"
     return _check
+
+
+def require_permission_rate_limited(
+    permission: str, action: str
+) -> Callable[..., Awaitable[Principal]]:
+    """`require_permission`, then the per-member rate limit of `action` (see rate_limit.py)."""
+    allowed = require_permission(permission)
+
+    async def _limit(principal: Principal = Depends(allowed)) -> Principal:
+        limit = int(getattr(get_settings(), f"{action}_rate_limit_per_minute"))
+        await check_action_rate(
+            get_redis(), action, principal.organization_id, principal.user_id, limit
+        )
+        return principal
+
+    _limit.__name__ = f"limit_{action}_{permission.replace(':', '_')}"
+    return _limit

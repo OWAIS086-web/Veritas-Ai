@@ -3222,6 +3222,14 @@
               }
             ]
           },
+          "services": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ComponentHealth"
+            },
+            "description": "Object storage and worker liveness (Celery ping). Reported, but they don't change `status`: the API itself still serves reads without them, and the container health check uses `status`.",
+            "title": "Services",
+            "type": "object"
+          },
           "status": {
             "enum": [
               "ok",
@@ -3886,6 +3894,141 @@
         "title": "Metric",
         "type": "object"
       },
+      "MetricsOut": {
+        "properties": {
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "queues": {
+            "items": {
+              "$ref": "#/components/schemas/QueueDepth"
+            },
+            "title": "Queues",
+            "type": "array"
+          },
+          "stages": {
+            "description": "This organization's document stages",
+            "items": {
+              "$ref": "#/components/schemas/StageMetrics"
+            },
+            "title": "Stages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "generated_at",
+          "queues",
+          "stages"
+        ],
+        "title": "MetricsOut",
+        "type": "object"
+      },
+      "ModelStatus": {
+        "properties": {
+          "available": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Listed by the endpoint; null if unreachable",
+            "title": "Available"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "text",
+              "vision",
+              "fallback"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "model",
+          "available"
+        ],
+        "title": "ModelStatus",
+        "type": "object"
+      },
+      "ModelsOut": {
+        "properties": {
+          "api_key_set": {
+            "title": "Api Key Set",
+            "type": "boolean"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "embeddings": {
+            "const": "not_built",
+            "default": "not_built",
+            "title": "Embeddings",
+            "type": "string"
+          },
+          "endpoint_host": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Host only; never the key or full URL",
+            "title": "Endpoint Host"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelStatus"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "provider": {
+            "const": "openai_compatible",
+            "default": "openai_compatible",
+            "title": "Provider",
+            "type": "string"
+          },
+          "reachable": {
+            "title": "Reachable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "configured",
+          "endpoint_host",
+          "api_key_set",
+          "reachable",
+          "error",
+          "models"
+        ],
+        "title": "ModelsOut",
+        "type": "object"
+      },
       "MyOrganizationOut": {
         "properties": {
           "id": {
@@ -4362,6 +4505,32 @@
           "document_ids"
         ],
         "title": "ProcessResponse",
+        "type": "object"
+      },
+      "QueueDepth": {
+        "properties": {
+          "queue": {
+            "title": "Queue",
+            "type": "string"
+          },
+          "waiting": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tasks waiting in the broker; null if unreadable",
+            "title": "Waiting"
+          }
+        },
+        "required": [
+          "queue",
+          "waiting"
+        ],
+        "title": "QueueDepth",
         "type": "object"
       },
       "RebuildOut": {
@@ -4961,6 +5130,47 @@
         ],
         "title": "Role",
         "type": "string"
+      },
+      "StageMetrics": {
+        "properties": {
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "mean_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean duration of succeeded runs",
+            "title": "Mean Seconds"
+          },
+          "other": {
+            "title": "Other",
+            "type": "integer"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "succeeded": {
+            "title": "Succeeded",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stage",
+          "succeeded",
+          "failed",
+          "other",
+          "mean_seconds"
+        ],
+        "title": "StageMetrics",
+        "type": "object"
       },
       "StageOut": {
         "properties": {
@@ -8996,6 +9206,23 @@
               ],
               "title": "X-Veritas-Viewer"
             }
+          },
+          {
+            "in": "header",
+            "name": "Sec-Fetch-Dest",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 20,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sec-Fetch-Dest"
+            }
           }
         ],
         "responses": {
@@ -11330,7 +11557,119 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Database and Redis health",
+        "summary": "Database and Redis health (status), plus graph, storage and worker liveness",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/metrics": {
+      "get": {
+        "operationId": "metrics_api_v1_system_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Role lacks the required permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found (or belongs to another organization)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Queue depths and this organization's stage outcomes and durations (admin only)",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/system/models": {
+      "get": {
+        "operationId": "models_api_v1_system_models_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Role lacks the required permission"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found (or belongs to another organization)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Configured model provider and models with reachability (never the API key)",
         "tags": [
           "system"
         ]

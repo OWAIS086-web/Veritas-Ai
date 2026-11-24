@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import sys
 from contextvars import ContextVar
 from datetime import UTC, datetime
@@ -12,6 +13,34 @@ from typing import Any
 request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 job_id_var: ContextVar[str | None] = ContextVar("job_id", default=None)
 org_id_var: ContextVar[str | None] = ContextVar("organization_id", default=None)
+# Worker tasks: the task name, Celery task id and the id of what the task works on.
+task_context_var: ContextVar[dict[str, str] | None] = ContextVar("task_context", default=None)
+
+# The second argument of each task is the id it works on; the first is the organization id.
+TASK_ID_FIELDS = {
+    "documents.process_batch": "job_id",
+    "cases.compare": "job_id",
+    "system.ping": "job_id",
+    "investigations.run": "investigation_id",
+    "reports.generate": "report_id",
+    "doccompare.run": "comparison_id",
+    "doccompare.export": "export_id",
+}
+_UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+
+
+def task_context(name: str, celery_id: str | None, args: tuple[Any, ...]) -> dict[str, str]:
+    """Log context of a task run. Only well-formed ids are taken from the arguments."""
+    ctx = {"task": name}
+    if celery_id:
+        ctx["task_id"] = celery_id
+    if args and isinstance(args[0], str) and _UUID.match(args[0]):
+        ctx["organization_id"] = args[0]
+    field = TASK_ID_FIELDS.get(name)
+    if field and len(args) > 1 and isinstance(args[1], str) and _UUID.match(args[1]):
+        ctx[field] = args[1]
+    return ctx
+
 
 # Keys that must never reach a log line, even if passed by mistake.
 _REDACTED_KEYS = frozenset(
@@ -44,6 +73,8 @@ class JsonFormatter(logging.Formatter):
             value = var.get()
             if value:
                 payload[key] = value
+        for key, value in (task_context_var.get() or {}).items():
+            payload.setdefault(key, value)
         for key, value in record.__dict__.items():
             if key in _STD_ATTRS or key.startswith("_"):
                 continue

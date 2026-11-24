@@ -157,6 +157,16 @@ An original and a test document of the same case are compared: pages are aligned
 
 A finding (`ComparisonFindingOut`) has `number` (drawn on the annotated files), `type` (`text_changed`, `text_added`, `text_removed`, `visual_difference`, `vlm_observed_difference`, `page_added`, `page_removed`), `sources` (`ocr` for text-layer or OCR text, `cv`, `vlm`, `page`), `test_page` and `region`, `original_page` and `original_region` (each `[x0, y0, x1, y1]`, top-left origin, in its own page units and validated inside the page), `original_text`, `test_text`, `severity` (at most `medium`), `evidence_confidence`, `explanation`, `metrics` (`confidence_basis`, `extracted_fields` references, pixel and OCR measurements) and `vlm_assessment`. Comparisons, findings and exports of another organization are a 404.
 
+## Endpoints and behavior (Phase 9)
+| Method | Path | Permission | Notes |
+|---|---|---|---|
+| GET | /system/health | none | Unchanged `status` (database and Redis decide it, and the container health check uses it). New `services`: `storage` (bucket reachable) and `worker` (Celery ping, worker count only). They are reported but never change `status`. |
+| GET | /system/metrics | system:metrics (org_admin only) | Broker queue depth (global count) and this organization's document stages: succeeded, failed and other counts, and mean seconds of succeeded runs |
+| GET | /system/models | stats:read | The configured OpenAI-compatible endpoint (host only), whether a key is set (never the key), and each text, vision and fallback model with `available` from the endpoint's `/models` list. `embeddings: not_built`. |
+
+- **Rate limits (429 + `Retry-After`, problem+json):** `POST /cases/{id}/documents` and `POST /cases/{id}/comparisons/upload` share `VERITAS_UPLOAD_RATE_LIMIT_PER_MINUTE` (30) per member. `POST /cases/{id}/investigate` is limited by `VERITAS_INVESTIGATION_RATE_LIMIT_PER_MINUTE` (5) per member. Only requests that pass authentication and the permission check count. Redis down means 503 (fail closed).
+- **Downloads:** `GET /files/{token}` opened directly is now `Content-Disposition: attachment` with a sanitized filename. The in-app viewer (`X-Veritas-Viewer: 1`) still gets an anonymous binary body. An `<img>` request (`Sec-Fetch-Dest: image`) for an image file is `inline`.
+
 ## Tokens
 - Access tokens are HS256 JWTs valid for 15 minutes, with claims `sub, org, role, type=access, jti, iat, exp`. The role in the token is informational: every request re-reads the membership and role from the database.
 - Refresh tokens are opaque random 256-bit strings, stored only as SHA-256 hashes and valid for 7 days.

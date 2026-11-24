@@ -88,6 +88,14 @@ The override removes the published Postgres and Redis ports, sets `VERITAS_ENV=p
 - To check an outage on the running stack: `pwsh -File scripts/graph-outage-check.ps1`. It stops and starts the `neo4j` container.
 - Data volumes now include `veritas_graphdata`.
 
+## Security and operations (Phase 9)
+- No new service. Migration 0009 adds the retention functions. The worker's embedded beat runs `system.retention_purge` every `VERITAS_RETENTION_PURGE_INTERVAL_SECONDS` (3600).
+- New settings (`.env`, passed through by Compose): `VERITAS_UPLOAD_RATE_LIMIT_PER_MINUTE` (30), `VERITAS_INVESTIGATION_RATE_LIMIT_PER_MINUTE` (5), `VERITAS_RETENTION_PURGE_INTERVAL_SECONDS` (3600). `VERITAS_DEMO_EMAIL` and `VERITAS_DEMO_PASSWORD` are used only by `scripts/demo-reset.ps1` and `.sh`.
+- Nginx: every location includes `frontend/nginx-security-headers.conf` (copied to `/etc/nginx/snippets/` by the frontend image). HSTS is sent only when the TLS proxy in front sets `X-Forwarded-Proto: https`.
+- Security scan: `pwsh -File scripts/security-scan.ps1` (or `.sh`) runs gitleaks, pip-audit, `npm audit --audit-level=high`, semgrep (`.semgrep/veritas.yml` plus `p/python`) and bandit. It needs Docker, uv and npm.
+- Demo reset: `pwsh -File scripts/demo-reset.ps1` soft-deletes the demo organization's cases and seeds the 7 shipment files through the public API, then checks for the USD 20,000.00 discrepancy.
+- Benchmark: `uv run python scripts/benchmark.py --runs 3 --write-docs` (from `backend/`; optional `--llm-base-url`, `--vlm-model` and `--api-url`). It writes `docs/benchmarks.md`. The results from 2026-11-24, with every option on, are in that file.
+
 ## Document Comparison Lab (original versus test)
 - No new service and no new dependency. The Celery tasks `doccompare.run` (time limit 30 min, waits up to 30 min for both documents to be processed, retrying every 10 s) and `doccompare.export` run in the existing worker. Migration 0008 adds the four tables.
 - Settings (`.env`, passed through by Compose; see `.env.example`):

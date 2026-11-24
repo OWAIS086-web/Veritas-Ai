@@ -109,6 +109,49 @@ def configured_vision_provider() -> OpenAICompatProvider | None:
     return OpenAICompatProvider(s.llm_base_url, s.llm_api_key, [s.vlm_model], s.llm_timeout_seconds)
 
 
+async def _listed_models() -> tuple[list[str] | None, str | None]:
+    """Model ids the configured endpoint lists (GET {base}/models), or (None, error)."""
+    s = get_settings()
+    headers = {"Authorization": f"Bearer {s.llm_api_key}"} if s.llm_api_key else {}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(s.llm_base_url.rstrip("/") + "/models", headers=headers)
+            resp.raise_for_status()
+            data = resp.json().get("data", [])
+    except (httpx.HTTPError, ValueError, AttributeError) as exc:
+        return None, f"endpoint not reachable ({type(exc).__name__})"
+    return [str(m.get("id")) for m in data if isinstance(m, dict)], None
+
+
+async def models_status() -> dict[str, Any]:
+    """Diagnostic for GET /system/models: configured models and whether the endpoint lists
+    them. Returns the host only, and never the key; sends no document content."""
+    s = get_settings()
+    configured = [("text", s.llm_model), ("vision", s.vlm_model)] + [
+        ("fallback", m) for m in s.llm_models[1:]
+    ]
+    configured = [(role, m) for role, m in configured if m]
+    out: dict[str, Any] = {
+        "configured": bool(s.llm_base_url and configured),
+        "endpoint_host": httpx.URL(s.llm_base_url).host if s.llm_base_url else None,
+        "api_key_set": bool(s.llm_api_key),
+        "reachable": False,
+        "error": None,
+        "models": [{"role": r, "model": m, "available": None} for r, m in configured],
+    }
+    if not out["configured"]:
+        out["error"] = "Set VERITAS_LLM_BASE_URL and VERITAS_LLM_MODEL or VERITAS_VLM_MODEL."
+        return out
+    listed, error = await _listed_models()
+    if listed is None:
+        out["error"] = error
+        return out
+    out["reachable"] = True
+    for entry in out["models"]:
+        entry["available"] = entry["model"] in listed
+    return out
+
+
 async def vision_status() -> dict[str, Any]:
     """Diagnostic: is the vision model configured, is the endpoint reachable, is the model
     listed there? Never sends document content."""

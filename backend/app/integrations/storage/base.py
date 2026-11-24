@@ -19,6 +19,12 @@ _KEY = re.compile(
 )
 
 
+_PREFIX = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/"
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/$"
+)
+
+
 class ObjectExistsError(Exception):
     """put_new refused to overwrite an existing object (originals are immutable)."""
 
@@ -35,6 +41,17 @@ def derived_key(organization_id: uuid.UUID, document_id: uuid.UUID, artifact: st
     if not _ARTIFACT.match(artifact):
         raise ValueError(f"invalid artifact name: {artifact!r}")
     return f"{organization_id}/{document_id}/derived/{artifact}"
+
+
+def resource_prefix(organization_id: uuid.UUID, resource_id: uuid.UUID) -> str:
+    """Every object of one document, report or comparison: `{org}/{id}/`."""
+    return f"{uuid.UUID(str(organization_id))}/{uuid.UUID(str(resource_id))}/"
+
+
+def validate_prefix(prefix: str) -> str:
+    if not _PREFIX.match(prefix):
+        raise ValueError("invalid storage prefix")
+    return prefix
 
 
 def validate_key(key: str) -> str:
@@ -57,3 +74,11 @@ class ObjectStore(Protocol):
     async def get(self, key: str) -> bytes: ...
 
     async def exists(self, key: str) -> bool: ...
+
+    async def ping(self) -> None:
+        """Health check: raises if the store can't be reached."""
+
+    async def delete_prefix(self, prefix: str) -> int:
+        """Delete every object under `{organization_id}/{resource_id}/` (retention purge only).
+        Returns the number of objects deleted."""
+        ...
